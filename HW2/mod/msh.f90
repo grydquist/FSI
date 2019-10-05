@@ -23,7 +23,7 @@ CONTAINS
 
 FUNCTION newmsh() RESULT(msh)
     TYPE(mshtype):: msh
-    INTEGER np, nsd, i, j, eNoN, Nel,elshp
+    INTEGER np, nsd, i, eNoN, Nel,elshp
     REAL(KIND =8), ALLOCATABLE :: xt(:,:)
 
     open(10,file = 'x.txt')
@@ -53,8 +53,8 @@ FUNCTION newmsh() RESULT(msh)
     ALLOCATE(xt(3,2))
     DO i =1,nEl
         xt = msh%x(msh%IEN(i,:),:)
-        print *, msh%x(i,:)
         msh%el(i) = newel(elshp,xt)
+        print *, msh%el(i)%j
     ENDDO
 
 

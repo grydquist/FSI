@@ -35,10 +35,10 @@ FUNCTION newel(elshp,x) RESULT(el)
         el%Ng(1,3) = 2D0/3D0
         el%Ng(3,1) = 2D0/3D0
 
-        el%dxdxi(1,1) = x(1,1) - x(1,3)
-        el%dxdxi(1,2) = x(1,2) - x(1,3)
-        el%dxdxi(2,1) = x(2,1) - x(2,3)
-        el%dxdxi(2,2) = x(2,2) - x(2,3)
+        el%dxdxi(1,1) = x(1,1) - x(3,1)
+        el%dxdxi(1,2) = x(2,1) - x(3,1)
+        el%dxdxi(2,1) = x(1,2) - x(3,2)
+        el%dxdxi(2,2) = x(2,2) - x(3,2)
 
         el%J = el%dxdxi(1,1)*el%dxdxi(2,2)-el%dxdxi(2,1)*el%dxdxi(1,2)
 
