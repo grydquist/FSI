@@ -25,6 +25,8 @@ END INTERFACE mshType
 
 CONTAINS
 
+!=================================================
+
 ! Makes a new mesh
 FUNCTION newmsh() RESULT(msh)
     TYPE(mshtype):: msh
@@ -63,9 +65,7 @@ FUNCTION newmsh() RESULT(msh)
         msh%el(i)%nds = msh%IEN(i,:)
     ENDDO
 
-
 END FUNCTION newmsh
-
 
 ! Deals with BCs
 SUBROUTINE mshbound(msh,bnd)

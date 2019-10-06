@@ -4,6 +4,8 @@ IMPLICIT NONE
 
 CONTAINS
 
+!=================================================
+
 ! Puts small kab into big KAB given element info
 SUBROUTINE globalstiff(msh,kab,f,KABg,Fg,iel)
 CLASS(mshtype), INTENT(IN),TARGET :: msh

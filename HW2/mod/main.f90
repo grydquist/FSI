@@ -10,14 +10,15 @@ INTEGER i,g,j
 REAL(KIND=8) xt(2),lam,lx,ly,pi
 REAL(KIND=8), ALLOCATABLE :: KABg(:,:),Fg(:), fun(:), kab(:,:),f(:),d(:),Ki(:,:)
 
-
 pi = 3.14159265358979323846264337
+
+! makes the msh
 msh = mshtype()
 
 ! get some geometry and whatnot
 lx = maxval(msh%x(:,1))
 ly = maxval(msh%x(:,2))
-lam = 1
+lam = 4
 
 ! Allocate variables and initializa big stiffness/forcing matrices
 ALLOCATE(bnd(msh%np,2),kab(msh%eNoN,msh%eNoN),f(msh%eNoN))
@@ -26,7 +27,7 @@ KABg = 0
 Fg = 0
 bnd = 0
 
-!   Put in my boundary conditions
+! Put in my boundary conditions
 DO i = 1,msh%np
 
     IF(msh%x(i,1).lt.1D-8) THEN
@@ -40,6 +41,7 @@ DO i = 1,msh%np
     ENDIF
 ENDDO
 
+! Add in the BC info
 CALL msh%bound(bnd)
 
 ! Big loop through elements
@@ -68,5 +70,10 @@ ENDDO
 CALL INVERSE(KABg,Ki,msh%np)
 d = matmul(Ki,Fg)
 
+open(88,file = 'd.txt',position = 'append')
+DO i = 1,msh%np
+write(88,*) d(i)
+ENDDO
+close(88)
 
 END PROGRAM MAIN

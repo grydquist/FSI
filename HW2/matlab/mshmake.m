@@ -1,10 +1,9 @@
 lx = 8;
 ly = 8;
-nx = 5;
-ny = 5;
+nx = 17;
+ny = 17;
 nsd = 2;
 x = zeros(nsd,nx*ny);
-ng = 3;
 
 %% Allocate x and conectivity matrix
 

@@ -4,6 +4,8 @@ IMPLICIT NONE
 
 CONTAINS
 
+!=================================================
+
 ! Calculates the local stiffness matrix for a giveen element
 SUBROUTINE localstiff(kab,f,el,fun)
 
@@ -44,10 +46,6 @@ if (el%bnd(a,1).eq.0) THEN
 ENDIF
 
 ENDDO
-
-
-
-
 
 END SUBROUTINE localstiff
 

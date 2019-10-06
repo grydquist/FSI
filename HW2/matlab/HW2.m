@@ -52,7 +52,7 @@ for i = 1:nt
 end
 
 %% Actual function/evaluation of element matrix
-lam = 1;
+lam = 4;
 fun = @(x,y) cos(lam*pi*(x/lx+y/ly));
 kab = zeros(eNoN,eNoN);
 KAB = zeros(nt,nt);
@@ -68,10 +68,7 @@ for i = 1:nEl
 %   Get element coordinates
     xa = x(:,IEN(i,:));
     [kab,f] = localk(bnd(IEN(i,:)),xa,eNoN,nsd,Ng,J(i),Wg,ng,fun);
-    
-    disp(i)
-    disp(f)
-
+   
     IENt = IEN(i,:);
 %   Put back into global
 
@@ -98,7 +95,7 @@ end
 % Here's the solution!
 d = KAB\F;
 
-%% Some post-processing and output
+%% Some post-processing and output 
 d = reshape(d,nx,ny);
 X = reshape(x(1,:),nx,ny);
 Y = reshape(x(2,:),nx,ny);
