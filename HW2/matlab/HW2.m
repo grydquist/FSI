@@ -43,10 +43,10 @@ end
 % Check for boundary nodes
 bnd = zeros(nt,1);
 for i = 1:nt
-    if x(2,i) ==0
+    if x(1,i) ==0
         bnd(i) = 2;
     end
-    if (x(1,i) == 0||x(1,i) == ly)
+    if (x(2,i) == 0||x(2,i) == ly)
         bnd(i) = 1;
     end
 end
@@ -68,6 +68,9 @@ for i = 1:nEl
 %   Get element coordinates
     xa = x(:,IEN(i,:));
     [kab,f] = localk(bnd(IEN(i,:)),xa,eNoN,nsd,Ng,J(i),Wg,ng,fun);
+    
+    disp(i)
+    disp(f)
 
     IENt = IEN(i,:);
 %   Put back into global
