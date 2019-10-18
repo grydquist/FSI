@@ -13,7 +13,8 @@ TYPE :: mshtype
     TYPE(eltype), ALLOCATABLE :: el(:)
 !   List of if the node is a boundary node, and if so what type and value
 !   (np,2), 1 == Dirichlet, 2 == Neumann, 0 == no boundary
-    INTEGER, ALLOCATABLE :: bnd(:,:)
+!   the last index is the dof
+    INTEGER, ALLOCATABLE :: bnd(:,:,:)
 
     CONTAINS
     PROCEDURE :: bound=>mshbound
@@ -58,7 +59,7 @@ FUNCTION newmsh() RESULT(msh)
 
 !   Allocate every element in msh with additional info
     elshp = 1
-    dof = 1!nsd
+    dof = nsd
     ALLOCATE(xt(3,2))
     DO i =1,nEl
         xt = msh%x(msh%IEN(i,:),:)
@@ -71,17 +72,19 @@ END FUNCTION newmsh
 ! Deals with BCs
 SUBROUTINE mshbound(msh,bnd)
     CLASS(mshtype),INTENT(INOUT) :: msh
-    INTEGER, ALLOCATABLE, INTENT(IN) :: bnd(:,:)
-    INTEGER i,j
+    INTEGER, ALLOCATABLE, INTENT(IN) :: bnd(:,:,:)
+    INTEGER i,j,k
 
     msh%bnd = bnd
 
     DO i=1,msh%nEL
         DO j = 1,msh%eNoN
-            IF (bnd(msh%IEN(i,j),1) .ne. 0) THEN
-                msh%el(i)%bnd(j,1) = bnd(msh%IEN(i,j),1)
-                msh%el(i)%bnd(j,2) = bnd(msh%IEN(i,j),2)
-            ENDIF
+            DO k =1,msh%el(i)%dof
+                IF (bnd(msh%IEN(i,j),1,k) .ne. 0) THEN
+                    msh%el(i)%bnd(j,1,k) = bnd(msh%IEN(i,j),1,k)
+                    msh%el(i)%bnd(j,2,k) = bnd(msh%IEN(i,j),2,k)
+                ENDIF
+            ENDDO
         ENDDO
     ENDDO
 

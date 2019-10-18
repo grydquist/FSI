@@ -6,7 +6,7 @@ TYPE :: eltype
     REAL(KIND = 8),ALLOCATABLE :: dxdxi(:,:), xig(:,:),Wg(:),Ng(:,:),Nxg(:,:,:)
     REAL(KIND = 8) :: J
     INTEGER:: gp,shp,eNoN,dof
-    INTEGER, ALLOCATABLE :: bnd(:,:), nds(:)
+    INTEGER, ALLOCATABLE :: bnd(:,:,:), nds(:)
 END TYPE
 
 INTERFACE eltype
@@ -85,7 +85,7 @@ FUNCTION newel(elshp,dof,x) RESULT(el)
             ENDDO
         ENDDO
 
-        ALLOCATE(el%bnd(el%eNoN,2))
+        ALLOCATE(el%bnd(el%eNoN,2,el%dof))
 
         el%bnd = 0
 
