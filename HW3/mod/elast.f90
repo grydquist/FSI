@@ -48,7 +48,7 @@ DO i = 1,el%dof
                     DO g = 1,el%gp
                         f(ai) = f(ai) &
                         & -(lam*el%Nxg(a,i,g)*el%Nxg(b,j,g) &
-                        & - mu *el%Nxg(a,j,g)*el%Nxg(b,i,g))&
+                        & + mu *el%Nxg(a,j,g)*el%Nxg(b,i,g))&
                         & * el%bnd(b,2,j)
                     ENDDO
                 ENDIF
