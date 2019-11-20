@@ -1,10 +1,8 @@
-MODULE TINT
+MODULE TINTMOD
     USE SOLMOD
 IMPLICIT NONE
 
     REAL(KIND=8) :: alphm, alphf, rhoin, gam
-
-
 
 CONTAINS
 
@@ -54,7 +52,7 @@ END SUBROUTINE resid
 
 
 
-END MODULE TINT
+END MODULE TINTMOD
 
 
 

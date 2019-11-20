@@ -7,11 +7,15 @@ fclose(fileid);
 %d2 = d(2:2:end);
 %d1 = reshape(d1,nx,ny);
 %d2 = reshape(d2,nx,ny);
-d = reshape(d,nx,ny);
+d = reshape(d,nx,ny,200);
 X = reshape(x(1,:),nx,ny);
 Y = reshape(x(2,:),nx,ny);
-surf(X,Y,d)
 
+for i = 1:200
+    clf
+    contourf(X,Y,d(:,:,i),100,'LineColor','none')
+    pause(0.1)
+end
 
 % figure
 % plot(Y((nx+1)/2,:),d2((nx+1)/2,:),'r')
