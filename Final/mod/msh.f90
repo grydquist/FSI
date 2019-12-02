@@ -29,9 +29,10 @@ CONTAINS
 !=================================================
 
 ! Makes a new mesh
-FUNCTION newmsh(dof) RESULT(msh)
+FUNCTION newmsh(dof,dt) RESULT(msh)
     TYPE(mshtype):: msh
     INTEGER, INTENT(IN) :: dof
+    REAL(KIND=8), INTENT(IN) :: dt
     INTEGER np, nsd, i, eNoN, Nel,elshp
     REAL(KIND =8), ALLOCATABLE :: xt(:,:)
 
@@ -65,6 +66,7 @@ FUNCTION newmsh(dof) RESULT(msh)
         xt = msh%x(msh%IEN(i,:),:)
         msh%el(i) = newel(elshp,dof,xt,i)
         msh%el(i)%nds = msh%IEN(i,:)
+        msh%el(i)%dt = dt
     ENDDO
 
 END FUNCTION newmsh

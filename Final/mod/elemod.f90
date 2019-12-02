@@ -2,9 +2,9 @@ MODULE ELEMOD
 IMPLICIT NONE
 
 TYPE :: eltype
-    ! xig(gp,nsd), Wg(gp), Ng(eNoN,gp), Ngx(eNoN,nsd,gp)
-    REAL(KIND = 8),ALLOCATABLE :: dxdxi(:,:), xig(:,:),Wg(:),Ng(:,:),Nxg(:,:,:)
-    REAL(KIND = 8) :: J
+    ! xig(gp,nsd), Wg(gp), Ng(eNoN,gp), Ngx(eNoN,nsd,gp), eG(eNoN,eNoN)
+    REAL(KIND = 8),ALLOCATABLE :: dxdxi(:,:), xig(:,:),Wg(:),Ng(:,:),Nxg(:,:,:),eG(:,:)
+    REAL(KIND = 8) :: J, dt
     INTEGER:: gp,shp,eNoN,dof,id
     INTEGER, ALLOCATABLE :: bnd(:,:,:), nds(:)
 END TYPE
@@ -36,7 +36,7 @@ FUNCTION newel(elshp,dof,x,id) RESULT(el)
         el%eNoN = 3
         ALLOCATE(el%nds(3))
         ALLOCATE(el%dxdxi(2,2),el%xig(3,2),el%Wg(3),el%Ng(3,3),dxidx(2,2))
-        ALLOCATE(Nxig(el%eNoN,2,el%gp),el%Nxg(el%eNoN,2,el%gp))
+        ALLOCATE(Nxig(el%eNoN,2,el%gp),el%Nxg(el%eNoN,2,el%gp),el%eG(2,2))
 
         el%xig = 1D0/6D0
         el%xig(2,2) = 2D0/3D0
@@ -84,6 +84,15 @@ FUNCTION newel(elshp,dof,x,id) RESULT(el)
                 DO j = 1,2
                     el%Nxg(i,j,g) = Nxig(i,1,g)*dxidx(1,j) + Nxig(i,2,g)*dxidx(2,j)
                 ENDDO
+            ENDDO
+        ENDDO
+
+!       Calculate element metric tensor
+        el%eG = 0
+
+        DO i = 1,2
+            DO j = 1,2
+                el%eG(i,j) = dxidx(1,j)*dxidx(1,i) + dxidx(2,j)*dxidx(2,i)
             ENDDO
         ENDDO
 

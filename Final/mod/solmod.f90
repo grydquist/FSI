@@ -21,10 +21,13 @@ FUNCTION newsol(dof,np,bnd1,bnd2) RESULT(sol)
     INTEGER,INTENT(IN) :: dof,np
     INTEGER, ALLOCATABLE, INTENT(IN) :: bnd1(:,:,:), bnd2(:,:,:)
     TYPE(solType) :: sol
-    INTEGER i,j
+    INTEGER i,j,shp(3)
 
     sol%dof = dof
     sol%np  = np
+    shp =  shape(bnd1)
+!   Initialize stuff
+    ALLOCATE(sol%bnd(shp(1),shp(2),shp(3)),sol%bnddot(shp(1),shp(2),shp(3)))
     sol%bnd = bnd1
     sol%bnddot = bnd2
     ALLOCATE(sol%d(dof,np),sol%do(dof,np),&

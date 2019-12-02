@@ -16,9 +16,9 @@ REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:)
 dofu = 2
 dofp = 1
 dof  = dofp + dofu
-! makes the msh
-msh = mshtype(dof)
 dt = 1D-2
+! makes the msh
+msh = mshtype(dof,dt)
 
 ! Initialize time integrator with damping
 CALL tintinit(0.5D0)
@@ -28,7 +28,7 @@ lx = maxval(msh%x(:,1))
 ly = maxval(msh%x(:,2))
 
 ! Allocate variables and initializa big stiffness/forcing matrices
-ALLOCATE(bnd(msh%np,2,dof))
+ALLOCATE(bnd(msh%np,2,dof),bnd2(msh%np,2,dof))
 bnd  = 0
 bnd2 = bnd
 
@@ -71,7 +71,7 @@ ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
 & Gt(msh%el(1)%eNoN*dof,dof), Ggt(msh%np*dof,dof))
 
 fun(1,:) = 0
-tol = 1e-2
+tol = 0
 u%d    = u%do
 p%d    = p%do
 
