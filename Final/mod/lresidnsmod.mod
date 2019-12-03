@@ -1,5 +1,5 @@
 GFORTRAN module version '10' created from lresidns.f90
-MD5:c5d099ff0cacaf39835d71f016977160 -- If you edit this, you'll get what you deserve.
+MD5:b9979009d0b0424bcbc1c7a584dd4639 -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () ()
 () () () ())
@@ -85,8 +85,8 @@ UNKNOWN 0 0 FUNCTION GENERIC) (UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 ()
 35 'gam' 'tintmod' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
 36 'lresidns' 'lresidnsmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC
-DECL UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE ALWAYS_EXPLICIT) (UNKNOWN 0 0
-0 0 UNKNOWN ()) 37 0 (38 39 40 41 42 43) () 0 () () () 0 0)
+DECL UNKNOWN 0 0 SUBROUTINE ALWAYS_EXPLICIT) (UNKNOWN 0 0 0 0 UNKNOWN ())
+37 0 (38 39 40 41 42 43) () 0 () () () 0 0)
 44 'lresidnsmod' 'lresidnsmod' '' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC
 UNKNOWN UNKNOWN 0 0) (UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0
 0)
@@ -125,8 +125,10 @@ DIMENSION DUMMY) (REAL 8 0 0 0 REAL ()) 0 0 () (2 0 EXPLICIT (CONSTANT (
 INTEGER 4 0 0 0 INTEGER ()) 0 '1') (OP (INTEGER 4 0 0 0 INTEGER ()) 0
 TIMES (VARIABLE (INTEGER 4 0 0 0 INTEGER ()) 0 41 ((COMPONENT 3 16))) (
 VARIABLE (INTEGER 4 0 0 0 INTEGER ()) 0 41 ((COMPONENT 3 17)))) (
-CONSTANT (INTEGER 4 0 0 0 INTEGER ()) 0 '1') (VARIABLE (INTEGER 4 0 0 0
-INTEGER ()) 0 41 ((COMPONENT 3 17)))) 0 () () () 0 0)
+CONSTANT (INTEGER 4 0 0 0 INTEGER ()) 0 '1') (OP (INTEGER 4 0 0 0
+INTEGER ()) 0 TIMES (VARIABLE (INTEGER 4 0 0 0 INTEGER ()) 0 41 ((
+COMPONENT 3 16))) (VARIABLE (INTEGER 4 0 0 0 INTEGER ()) 0 41 ((
+COMPONENT 3 17))))) 0 () () () 0 0)
 40 'fun' '' '' 37 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 ALLOCATABLE DIMENSION DUMMY) (REAL 8 0 0 0 REAL ()) 0 0 () (2 0 DEFERRED
 () () () ()) 0 () () () 0 0)

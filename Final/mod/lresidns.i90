@@ -11,14 +11,19 @@ SUBROUTINE lresidns(G,Gt,fun,el,u,p)
 TYPE(eltype), INTENT(IN) :: el
 REAL(KIND=8), ALLOCATABLE, INTENT(IN) :: fun(:,:)
 TYPE(soltype), INTENT(IN) :: u,p
-REAL(KIND=8), INTENT(OUT) :: G(el%eNoN*el%dof),Gt(el%eNoN*el%dof,el%dof)
+REAL(KIND=8), INTENT(OUT) :: G(el%eNoN*el%dof),Gt(el%eNoN*el%dof,el%eNoN*el%dof)
 INTEGER :: a,b,gp,i,j,ai,bi, ag,bg
 ! Subgrid variables
 REAL(KIND=8) up(u%dof,el%eNoN), pp(p%dof,el%eNoN), ugp(u%dof,el%gp), &
 &            duxgp(u%dof,u%dof,el%gp), dutgp(u%dof,el%gp), pgp(el%gp), &
-&            upgp(u%dof,el%gp), ppgp(el%gp)
+&            upgp(u%dof,el%gp), ppgp(el%gp), nucgp(el%gp), taumgp(el%gp), &
+&            Nxg(el%eNoN,u%dof,el%gp), Ng(el%eNoN,el%gp)   
 ! Temporary material properties !!!
 REAL(KIND=8) :: rho,mu, taum(el%eNoN), nuc(el%eNoN)
+
+! Put shape functions and their derivs into their own variable
+Nxg = el%Nxg
+Ng = el%Ng
 
 rho = 1
 mu = 1
@@ -36,11 +41,11 @@ DO i = 1,u%dof
     DO gp = 1,el%gp
         DO a = 1,el%eNoN
             ag = el%nds(a)
-            ugp(i,gp)   = ugp(i,gp)  + el%Ng(a,gp)*u%dalphf(i,ag)
-            dutgp(i,gp) = dutgp(i,gp)+ el%Ng(a,gp)*u%ddalphm(i,ag)
+            ugp(i,gp)   = ugp(i,gp)  + Ng(a,gp)*u%dalphf(i,ag)
+            dutgp(i,gp) = dutgp(i,gp)+ Ng(a,gp)*u%ddalphm(i,ag)
 !           This term is deriv of ith velocity in jth direction at gp
             DO j = 1,u%dof
-                duxgp(i,j,gp) = duxgp(i,j,gp) + el%Nxg(i,j,gp)*u%dalphf(i,ag)
+                duxgp(i,j,gp) = duxgp(i,j,gp) + Nxg(i,j,gp)*u%dalphf(i,ag)
             ENDDO
         ENDDO
     ENDDO
@@ -50,7 +55,7 @@ ENDDO
 DO gp = 1,el%gp
     DO a = 1,el%eNoN
         ag = el%nds(a)
-        pgp(gp) = pgp(gp) + el%Ng(a,gp)*p%d(1,ag)
+        pgp(gp) = pgp(gp) + Ng(a,gp)*p%d(1,ag)
     ENDDO
 ENDDO
 
@@ -72,25 +77,25 @@ DO i = 1,el%dof
                 DO gp = 1,el%gp
                     G(ai) = G(ai) &
 !                   Advection/forcing part
-                    &     +(el%Ng(a,gp)*rho*(dutgp(i,gp) &
+                    &     +(Ng(a,gp)*rho*(dutgp(i,gp) &
                     &     + ugp(1,gp)*duxgp(i,1,gp) &
                     &     + ugp(2,gp)*duxgp(i,2,gp) &
                     &     - fun(i,gp)) &
 !                   Viscous part
                     &     + mu/2D0 &
-                    &     *(duxgp(i,1,gp)*el%Nxg(a,1,gp) &
-                    &     + duxgp(i,2,gp)*el%Nxg(a,2,gp) &
-                    &     + duxgp(1,i,gp)*el%Nxg(a,1,gp) &
-                    &     + duxgp(2,1,gp)*el%Nxg(a,2,gp))&
+                    &     *(duxgp(i,1,gp)*Nxg(a,1,gp) &
+                    &     + duxgp(i,2,gp)*Nxg(a,2,gp) &
+                    &     + duxgp(1,i,gp)*Nxg(a,1,gp) &
+                    &     + duxgp(2,1,gp)*Nxg(a,2,gp))&
 !                   Pressure part
-                    &     - el%Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)
+                    &     - Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)
 !                   Traction part (0 for now)
                 ENDDO
             ELSE
 !               Calulate Rc for node a (G(3))
                 DO gp = 1,el%gp
                    G(ai) = G(ai) &
-                   &     + (el%Ng(a,gp) &
+                   &     + (Ng(a,gp) &
                    &     * (duxgp(1,1,gp) + duxgp(2,2,gp)))*el%Wg(gp)
                 ENDDO
             ENDIF
@@ -131,7 +136,7 @@ ENDDO
 DO i = 1,u%dof
     DO gp = 1,el%gp
         DO a = 1,el%eNoN
-            upgp(i,gp) = upgp(i,gp)  + el%Ng(a,gp)*up(i,a)
+            upgp(i,gp) = upgp(i,gp)  + Ng(a,gp)*up(i,a)
         ENDDO
     ENDDO
 ENDDO
@@ -139,7 +144,9 @@ ENDDO
 ! Now pp at gp as well
 DO gp = 1,el%gp
     DO a = 1,el%eNoN
-        ppgp(gp) = ppgp(gp) + el%Ng(a,gp)*pp(1,a)
+        ppgp(gp)   = ppgp  (gp) + Ng(a,gp)*pp(1,a)
+        taumgp(gp) = taumgp(gp) + Ng(a,gp)*taum(a)
+        nucgp(gp)  = nucgp (gp) + Ng(a,gp)*nuc(a)
     ENDDO
 ENDDO
 
@@ -162,21 +169,21 @@ DO i = 1,el%dof
                 DO gp = 1,el%gp
                     G(ai) = G(ai) &
 !                   First term
-                    &     +(el%Ng(a,gp)*rho*(upgp(1,gp)*duxgp(i,1,gp) &
+                    &     +(Ng(a,gp)*rho*(upgp(1,gp)*duxgp(i,1,gp) &
                     &     + upgp(2,gp)*duxgp(i,2,gp)) &
 !                   Skip second u'*u' term, third term
-                    &     +(ugp(1,gp)*el%Nxg(a,1,gp)  &
-                    &     + ugp(2,gp)*el%Nxg(a,2,gp)) &
+                    &     +(ugp(1,gp)*Nxg(a,1,gp)  &
+                    &     + ugp(2,gp)*Nxg(a,2,gp)) &
                     &     * upgp(i,gp)*rho &
 !                   Pressure term
-                    &     - el%Nxg(a,i,gp)*ppgp(gp))*el%Wg(gp)
+                    &     - Nxg(a,i,gp)*ppgp(gp))*el%Wg(gp)
                 ENDDO
             ELSE
 !               Calulate Rc for node a (G(3))
                 DO gp = 1,el%gp
                     G(ai) = G(ai) &
-                    &     -(el%Nxg(a,1,gp)*upgp(1,gp) &
-                    &     + el%Nxg(a,2,gp)*upgp(2,gp))*el%Wg(gp)
+                    &     -(Nxg(a,1,gp)*upgp(1,gp) &
+                    &     + Nxg(a,2,gp)*upgp(2,gp))*el%Wg(gp)
                 ENDDO
             ENDIF
         ENDDO
@@ -184,28 +191,69 @@ DO i = 1,el%dof
 ENDDO
 ENDDO
 
+ai = 0
 
 ! Now for the tangent matrix
 DO a = 1,el%eNoN
-ag = el%nds(a)
-! Loop through dof (for index a)
+! Loop through dof of residual (i = 3) = continuity
 DO i = 1,el%dof
     bi = 0
     ai = ai+1
-!   If this isn't a boundary node, go ahead and calculate the resid at a
-    IF (el%bnd(a,1,i).eq.0) THEN
-!       Go through surrounding nodes and incorporate into resid for a
-        DO b = 1,el%eNoN
-!           Again through dof, now for b
-            DO j =1,el%dof
-                bi = bi+1
-!               Loop through Gauss points to calc integral
-                DO gp = 1,el%gp
+!   Check derivatives with same or surrounding nodes (b)
+    DO b = 1,el%eNoN
+!       Again through dof for parameters (j = 3) = pressure
+        DO j =1,el%dof
+            bi = bi+1
+            DO gp = 1,el%gp
+!               4 derivative cases:
+!               Momentum residual with respect to velocity
+                IF(((i.eq.1).or.(i.eq.2)).and.((j.eq.1).or.(j.eq.2))) THEN
+                    Gt(ai,bi) = Gt(ai,bi) &
+!                   Second viscous term
+                    &         + mu/2D0*Nxg(a,j,gp)*Nxg(b,i,gp)*alphf*gam*el%dt &
+!                   Last RBVMS term with nuc
+                    &         +Nxg(a,i,gp)*alphf*gam*el%dt*Nxg(b,j,gp)*rho*nucgp(gp)
+!                   Kronecker delta terms
+                    IF(i.eq.j) THEN
+                        Gt(ai,bi) = Gt(ai,bi) &
+!                       Nonlinear term
+                        &         + rho*Ng(a,gp)*(alphm*Ng(b,gp) &
+                        &         + (ugp(1,gp)*Nxg(b,1,gp) + ugp(2,gp)*Nxg(b,2,gp)) &
+                        &         * alphf*gam*el%dt) &
+!                       First viscous term
+                        &         + mu/2D0*(Nxg(a,1,gp)*Nxg(b,1,gp) &
+                        &         + Nxg(a,2,gp)*Nxg(b,2,gp))*alphf*gam*el%dt &
+!                       RBVMS term with taum
+                        &         - (ugp(1,gp)*Nxg(a,1,gp) + ugp(2,gp)*Nxg(a,2,gp)) &
+                        &         * taumgp(gp)*(rho*alphm*Ng(b,gp) &
+                        &         + rho*(ugp(1,gp)*Nxg(b,1,gp) + ugp(2,gp)*Nxg(b,2,gp))&
+                        &         * alphf*gam*el%dt)
+                    ENDIF
 
-                ENDDO
+!               Momentum residual with respect to pressure
+                ELSEIF (((i.eq.1).or.(i.eq.2)).and.(j.eq.3)) THEN
+                    Gt(ai,bi) = Gt(ai,bi) &
+                    &         - Nxg(a,i,gp)*Ng(b,gp) &
+                    &         + taumgp(gp)*(Nxg(a,1,gp)*ugp(1,gp) + Nxg(a,2,gp)*ugp(2,gp)) &
+                    &         * Nxg(b,i,gp)
+
+!               Continuity residual with respect to velocity
+                ELSEIF ((i.eq.3).and.((j.eq.1).or.(j.eq.2))) THEN
+                    Gt(ai,bi) = Gt(ai,bi) &
+                    &         + Ng(a,gp)*Nxg(b,j,gp)*alphf*gam*el%dt &
+                    &         + Nxg(a,j,gp)*taumgp(gp)*(alphm*Ng(b,gp) &
+                    &         + alphf*gam*el%dt*(ugp(1,gp)*Nxg(b,1,gp) &
+                    &         + ugp(2,gp)*Nxg(b,2,gp)))
+
+!               Continuity residual with respect to pressure
+                ELSEIF ((i.eq.3).and.(j.eq.3)) THEN
+                    Gt(ai,bi) = Gt(ai,bi) &
+                    &         + taumgp(gp)/rho &
+                    &         * (Nxg(a,1,gp)*Nxg(b,1,gp) + Nxg(a,2,gp)*Nxg(b,2,gp))
+                ENDIF
             ENDDO
         ENDDO
-    ENDIF
+    ENDDO
 ENDDO
 ENDDO
 

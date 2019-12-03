@@ -68,7 +68,7 @@ CALL msh%bound(bnd)
 
 ALLOCATE(fun(dof,msh%el(1)%gp))
 ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
-& Gt(msh%el(1)%eNoN*dof,dof), Ggt(msh%np*dof,dof))
+& Gt(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof), Ggt(msh%np*dof,msh%np*dof))
 
 fun(1,:) = 0
 tol = 0
@@ -99,7 +99,7 @@ DO ts = 1,200
 !           Put back into global
             DO j=1,dof
                 Gg (dof*(msh%IEN(i,:)-1)+j)  = Gg(dof*(msh%IEN(i,:)-1)+j) + G
-                Ggt(dof*(msh%IEN(i,:)-1)+j,:)= Ggt(dof*(msh%IEN(i,:)-1)+j,:) + Gt
+                !Ggt(dof*(msh%IEN(i,:)-1)+j,:)= Ggt(dof*(msh%IEN(i,:)-1)+j,:) + Gt
             ENDDO
             if(maxval(msh%x(msh%el(i)%nds,2)) .gt. 7.999) THEN
                 !print *, G, maxval(msh%x(msh%el(i)%nds,1))
