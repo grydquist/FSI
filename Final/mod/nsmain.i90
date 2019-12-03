@@ -1,3 +1,4 @@
+# 1 "/home/gjr68/Documents/HW/FSI/Final/mod/nsmain.f90"
 PROGRAM MAIN
 USE TINTMOD
 USE MSHMOD
@@ -102,15 +103,15 @@ DO ts = 1,200
                 Ggt(dof*(msh%IEN(i,:)-1)+j,:)= Ggt(dof*(msh%IEN(i,:)-1)+j,:) + Gt
             ENDDO
             if(maxval(msh%x(msh%el(i)%nds,2)) .gt. 7.999) THEN
-                !print *, G, maxval(msh%x(msh%el(i)%nds,1))
+!print *, G, maxval(msh%x(msh%el(i)%nds,1))
             ENDIF
         ENDDO
 
         DO i=1,msh%np*dof
             DO j=1,dof
                 IF (j.lt.3) THEN
-                   ! u%ddot(j,i)  = u%ddot(j,i) + Gg(i)/Ggt(i)
-                   ! u%d(j,i) = u%d(1,i) + p%ddot(1,i)*gam*dt
+! u%ddot(j,i)  = u%ddot(j,i) + Gg(i)/Ggt(i)
+! u%d(j,i) = u%d(1,i) + p%ddot(1,i)*gam*dt
                 ELSE
 
                 ENDIF
@@ -125,13 +126,13 @@ DO ts = 1,200
 !   Update Loops
     DO i=1,msh%np
         DO j = 1,dof
-            !p%do(1,i) = p%d(1,i)
-            !p%d(1,i)  = p%d(1,i) + gam*dt*p%ddot(1,i)
+!p%do(1,i) = p%d(1,i)
+!p%d(1,i)  = p%d(1,i) + gam*dt*p%ddot(1,i)
         ENDDO
     ENDDO
 
     DO i = 1,msh%np*dof
-        !write(88,*) p%d(1,i)
+!write(88,*) p%d(1,i)
     ENDDO
 ENDDO
 

@@ -1,3 +1,4 @@
+# 1 "/home/gjr68/Documents/HW/FSI/Final/mod/lresidns.f90"
 MODULE LRESIDNSMOD
     USE SOLMOD
     USE ELEMOD
@@ -61,7 +62,7 @@ DO i = 1,el%dof
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
     IF (el%bnd(a,1,i).eq.0) THEN
-!       Go through surrounding nodes and incorporate into resid for a 
+!       Go through surrounding nodes and incorporate into resid for a
         DO b = 1,el%eNoN
             bg = el%nds(b)
 !           Loop through Gauss points to calc integral
@@ -75,7 +76,7 @@ DO i = 1,el%dof
                     &     + ugp(1,gp)*duxgp(i,1,gp) &
                     &     + ugp(2,gp)*duxgp(i,2,gp) &
                     &     - fun(i,gp)) &
-!                   Viscous part                   
+!                   Viscous part
                     &     + mu/2D0 &
                     &     *(duxgp(i,1,gp)*el%Nxg(a,1,gp) &
                     &     + duxgp(i,2,gp)*el%Nxg(a,2,gp) &
@@ -152,7 +153,7 @@ DO i = 1,el%dof
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
     IF (el%bnd(a,1,i).eq.0) THEN
-!       Go through surrounding nodes and incorporate into resid for a 
+!       Go through surrounding nodes and incorporate into resid for a
         DO b = 1,el%eNoN
 !           Loop through Gauss points to calc integral
 !           If i = 1, we're dealing with x-mom, 2->y-mom, 3->cont
@@ -193,7 +194,7 @@ DO i = 1,el%dof
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
     IF (el%bnd(a,1,i).eq.0) THEN
-!       Go through surrounding nodes and incorporate into resid for a 
+!       Go through surrounding nodes and incorporate into resid for a
         DO b = 1,el%eNoN
 !           Again through dof, now for b
             DO j =1,el%dof
