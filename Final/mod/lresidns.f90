@@ -50,7 +50,7 @@ DO i = 1,u%dof
             dutgp(i,gp) = dutgp(i,gp)+ Ng(a,gp)*u%ddalphm(i,ag)
 !           This term is deriv of ith velocity in jth direction at gp
             DO j = 1,u%dof
-                duxgp(i,j,gp) = duxgp(i,j,gp) + Nxg(i,j,gp)*u%dalphf(i,ag) !!!!This could be the problem
+                duxgp(i,j,gp) = duxgp(i,j,gp) + Nxg(a,j,gp)*u%dalphf(i,ag)
             ENDDO
         ENDDO
     ENDDO
@@ -94,7 +94,6 @@ DO i = 1,el%dof
 
 
                     IF ((el%nds(a).eq.5).and.(i.eq.1).and.(el%nds(1).eq.7)) Then
-                        print *, nxg(a,2,gp)
                         gtemp1 = gtemp1+(Ng(a,gp)*rho*(dutgp(i,gp) &
                     &     + ugp(1,gp)*duxgp(i,1,gp) &
                     &     + ugp(2,gp)*duxgp(i,2,gp) &

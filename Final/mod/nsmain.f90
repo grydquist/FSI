@@ -128,9 +128,6 @@ DO ts = 1,5
                 ENDIF
             ENDDO
         ENDDO
-        DO i = 1,msh%np
-            IF(ALL(GGt(:,i).lt.1d-8)) print *, i
-        ENDDO
         
         CALL INVERSE(Ggt,Ggti,msh%np*dof)
         DO i = 1,msh%np
@@ -162,7 +159,8 @@ DO ts = 1,5
                 ENDIF
             ENDDO
         ENDDO
-        stop!if(ts.eq.2) stop
+        print *, u%d(1,5)
+        if(ts.eq.2) stop
     ENDDO
 
 !   Update Loops
