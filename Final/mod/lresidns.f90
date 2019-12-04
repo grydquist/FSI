@@ -20,12 +20,18 @@ REAL(KIND=8) up(u%dof,el%eNoN), pp(p%dof,el%eNoN), ugp(u%dof,el%gp), &
 ! Temporary material properties !!!
 REAL(KIND=8) :: rho,mu, taum(el%eNoN), nuc(el%eNoN)
 
+
+REAL(KIND=8) :: gtemp1,gtemp3,gtemp2
+gtemp1 = 0
+gtemp2 = 0
+gtemp3 = 0
+
 ! Put shape functions and their derivs into their own variable
 Nxg = el%Nxg
 Ng = el%Ng
 
-rho = 1
-mu = 1
+rho = 1D0
+mu = 1D0
 
 Gt = 0
 G = 0
@@ -44,7 +50,7 @@ DO i = 1,u%dof
             dutgp(i,gp) = dutgp(i,gp)+ Ng(a,gp)*u%ddalphm(i,ag)
 !           This term is deriv of ith velocity in jth direction at gp
             DO j = 1,u%dof
-                duxgp(i,j,gp) = duxgp(i,j,gp) + Nxg(i,j,gp)*u%dalphf(i,ag)
+                duxgp(i,j,gp) = duxgp(i,j,gp) + Nxg(i,j,gp)*u%dalphf(i,ag) !!!!This could be the problem
             ENDDO
         ENDDO
     ENDDO
@@ -64,7 +70,7 @@ DO a = 1,el%eNoN
 DO i = 1,el%dof
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
-   IF (el%bnd(a,1,i).eq.0) THEN
+    IF (el%bnd(a,1,i).eq.0) THEN
 !           Loop through Gauss points to calc integral
 !           If i = 1, we're dealing with x-mom, 2->y-mom, 3->cont
             IF((i.eq.1).or.(i.eq.2)) THEN
@@ -76,7 +82,7 @@ DO i = 1,el%dof
                     &     + ugp(1,gp)*duxgp(i,1,gp) &
                     &     + ugp(2,gp)*duxgp(i,2,gp) &
                     &     - fun(i,gp)) &
-!                   Viscous part                   
+!                   Viscous part
                     &     + mu/2D0 &
                     &     *(duxgp(i,1,gp)*Nxg(a,1,gp) &
                     &     + duxgp(i,2,gp)*Nxg(a,2,gp) &
@@ -85,7 +91,28 @@ DO i = 1,el%dof
 !                   Pressure part
                     &     - Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)
 !                   Traction part (0 for now)
+
+
+                    IF ((el%nds(a).eq.5).and.(i.eq.1).and.(el%nds(1).eq.7)) Then
+                        print *, nxg(a,2,gp)
+                        gtemp1 = gtemp1+(Ng(a,gp)*rho*(dutgp(i,gp) &
+                    &     + ugp(1,gp)*duxgp(i,1,gp) &
+                    &     + ugp(2,gp)*duxgp(i,2,gp) &
+                    &     - fun(i,gp)))*el%Wg(gp)
+
+                        gtemp2= gtemp2+mu/2D0 &
+                        &     *(duxgp(i,1,gp)*Nxg(a,1,gp) &
+                        &     + duxgp(i,2,gp)*Nxg(a,2,gp) &
+                        &     + duxgp(1,i,gp)*Nxg(a,1,gp) &
+                        &     + duxgp(2,1,gp)*Nxg(a,2,gp))*el%Wg(gp)
+
+                        gtemp3 = gtemp3-(Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)
+                    ENDIF
                 ENDDO
+                IF ((el%nds(a).eq.5).and.(i.eq.1).and.(el%nds(1).eq.7)) Then
+                    !print *, duxgp(i,:,1), el%nds
+                    !print *, G(ai),gtemp1, gtemp2, gtemp3
+                ENDIF
             ELSE
 !               Calulate Rc for node a (G(3))
                 DO gp = 1,el%gp
@@ -114,9 +141,9 @@ DO a = 1,el%eNoN
     &       * (el%eG(1,1)*el%eG(1,1) + el%eG(1,2)*el%eG(1,2) &
     &       +  el%eG(2,1)*el%eG(2,1) + el%eG(2,2)*el%eG(2,2))&
     &       + 4D0/el%dt/el%dt)**(-0.5D0)
-    !taum(a) = 0
+    taum(a) = 0
 
-    nuc(a) = 1/(el%eG(1,1)+el%eG(2,2))/taum(a)
+    !nuc(a) = 1/(el%eG(1,1)+el%eG(2,2))/taum(a)
 
     DO i =1,u%dof
         ai = ai + 1
@@ -202,7 +229,7 @@ DO i = 1,el%dof
 !                   Second viscous term
                     &         + mu/2D0*Nxg(a,j,gp)*Nxg(b,i,gp)*alphf*gam*el%dt &
 !                   Last RBVMS term with nuc
-                    &         +Nxg(a,i,gp)*alphf*gam*el%dt*Nxg(b,j,gp)*rho*nucgp(gp)
+                    &         + Nxg(a,i,gp)*alphf*gam*el%dt*Nxg(b,j,gp)*rho*nucgp(gp)
 !                   Kronecker delta terms
                     IF(i.eq.j) THEN
                         Gt(ai,bi) = Gt(ai,bi) &

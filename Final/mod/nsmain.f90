@@ -17,12 +17,12 @@ REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), dY(:),Ggti
 dofu = 2
 dofp = 1
 dof  = dofp + dofu
-dt = 1D-4
+dt = 1D-2
 ! makes the msh
 msh = mshtype(dof,dt)
 
 ! Initialize time integrator with damping
-CALL tintinit(0.5D0)
+CALL tintinit(0.2D0)
 
 ! get some geometry and whatnot
 lx = maxval(msh%x(:,1))
@@ -37,23 +37,26 @@ bnd2 = bnd
 DO i = 1,msh%np
     DO j =1,dof
         bnd(i,1,j) = 0
-        IF (ANY((msh%x(i,:) .gt. 7.999999D0)).or.ANY((msh%x(i,:) .lt. 1D-8))) THEN
+        IF (ANY((msh%x(i,:) .gt. maxval(msh%x(:,1))-1d-8)).or.ANY((msh%x(i,:) .lt. 1D-8))) THEN
             IF (j.lt.3) THEN
             bnd(i,1,j) = 1
             bnd(i,2,j) = 0
             ENDIF
         ENDIF
 !           Add in cavity-driven BC
-        IF((msh%x(i,2) .gt. 7.999999D0).and.(j.eq.1)) THEN
+        IF((msh%x(i,2) .gt. maxval(msh%x(:,1))-1d-8).and.(j.eq.1)) THEN
             bnd(i,1,j) = 1
             bnd(i,2,j) = 1
         ENDIF
-        IF ((msh%x(i,1).lt.1D-8).and.(msh%x(i,2).lt.1D-8).and.(j.eq.3)) THEN
+        IF ((abs(msh%x(i,1)-maxval(msh%x(:,1))/2).lt.1D-8).and.(abs(msh%x(i,2)-maxval(msh%x(:,1))/2).lt.1D-8).and.(j.eq.3)) THEN
             bnd(i,1,j) = 1
             bnd(i,2,j) = 0
         ENDIF
     ENDDO
 ENDDO
+bnd(:,1,3) = 1
+bnd(:,2,3) = 0
+bnd(5,1,3) = 0
 
 ! Make solution structure
 ALLOCATE(bndt(msh%np,2,dofu),bnd2t(msh%np,2,dofu))
@@ -91,6 +94,7 @@ DO ts = 1,5
 
 !   Iteration loop
     DO ti = 1,15!WHILE ((ti .lt. 16).or.(tol .lt. 1e-3))
+        print *, ti
         Gg = 0
         Ggt= 0
 !       Get solutions at alphas
@@ -100,12 +104,6 @@ DO ts = 1,5
         DO i=1,msh%nEL
 !           Get residual matrix/vector
             CALL lresidns(G,Gt,fun,msh%el(i),u,p)
-            IF(ANY(msh%IEN(i,:).eq.5)) THEN
-                DO j=1,9
-                    !print *, G(j), msh%IEN(i,:)
-                ENDDO
-                !print *, 1
-            ENDIF
 !           Put back into global
             DO j=1,dof
                 DO k = 1,msh%eNoN
@@ -113,14 +111,26 @@ DO ts = 1,5
                     DO l=1,dof
                         DO m = 1,msh%eNoN
                             Ggt(dof*(msh%IEN(i,k)-1)+j,dof*(msh%IEN(i,m)-1)+l) = &
-                        &   Ggt(dof*(msh%IEN(i,k)-1)+j,dof*(msh%IEN(i,m)-1)+l) + Gt((k-1)*dof+j,(m-1)*dof+l)
+                        &   Ggt(dof*(msh%IEN(i,k)-1)+j,dof*(msh%IEN(i,m)-1)+l) + &
+                        &   Gt((k-1)*dof+j,(m-1)*dof+l)
                         ENDDO
                     ENDDO
                 ENDDO
             ENDDO
         ENDDO
 
-        Ggt = TRANSPOSE(Ggt)
+        DO i = 1,msh%np
+            DO j = 1,dof
+                IF (bnd(i,1,j) .eq. 1) THEN
+                    Ggt(dof*(i-1)+j,:) = 0
+                    Ggt(dof*(i-1)+j,dof*(i-1)+j) = 1
+                    Gg(dof*(i-1)+j) = 0
+                ENDIF
+            ENDDO
+        ENDDO
+        DO i = 1,msh%np
+            IF(ALL(GGt(:,i).lt.1d-8)) print *, i
+        ENDDO
         
         CALL INVERSE(Ggt,Ggti,msh%np*dof)
         DO i = 1,msh%np
@@ -131,7 +141,7 @@ DO ts = 1,5
                 !print *, Ggt((i-1)*dof+j,:)
                 DO k = 1,msh%np
                     DO l = 1,dof
-                        write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
+                        !write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
                     ENDDO
                 ENDDO
             ENDDO
@@ -140,7 +150,7 @@ DO ts = 1,5
         dY = matmul(Ggti,-Gg)
 
         DO i=1,msh%np
-            print *, dY(i*dof-2), dY(i*dof-1), dY(i*dof), i
+            !print *, dY(i*dof-2), dY(i*dof-1), dY(i*dof), i
             DO j=1,dof
                 IF (j.lt.3) THEN
                     u%ddot(j,i)  = u%ddot(j,i) + dY((i-1)*dof + j)
@@ -152,7 +162,7 @@ DO ts = 1,5
                 ENDIF
             ENDDO
         ENDDO
-        stop
+        stop!if(ts.eq.2) stop
     ENDDO
 
 !   Update Loops

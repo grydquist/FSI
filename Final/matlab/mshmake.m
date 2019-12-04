@@ -1,8 +1,8 @@
 clear IEN x;
-lx = 8;
-ly = 8;
-nx = 5;
-ny = 5;
+lx = 1;
+ly = 1;
+nx = 3;
+ny = 3;
 nsd = 2;
 x = zeros(nsd,nx*ny);
 nt = length(x(1,:));
