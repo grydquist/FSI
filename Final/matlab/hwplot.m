@@ -11,11 +11,11 @@ d = reshape(d,nx,ny,200);
 X = reshape(x(1,:),nx,ny);
 Y = reshape(x(2,:),nx,ny);
 
-for i = 1:200
-    clf
-    contourf(X,Y,d(:,:,i),100,'LineColor','none')
-    pause(0.1)
-end
+% for i = 1:200
+%     clf
+%     contourf(X,Y,d(:,:,i),100,'LineColor','none')
+%     pause(0.1)
+% end
 
 % figure
 % plot(Y((nx+1)/2,:),d2((nx+1)/2,:),'r')
@@ -23,3 +23,14 @@ end
 % title('u^h(l_x/2,y), 17X17 nodes')
 % xlabel('y')
 % ylabel('u^h')
+
+
+fileid = fopen('u.txt');
+ut = fscanf(fileid,'%f');
+fclose(fileid);
+%reshape(u,2,nx,ny,4)
+u = ut(1:2:end);
+v = ut(2:2:end);
+
+u = reshape(u,nx,ny,5);
+v = reshape(v,nx,ny,5);

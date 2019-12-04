@@ -16,8 +16,8 @@ REAL(KIND=8), ALLOCATABLE :: KABg(:,:),Fg(:), fun(:,:), kab(:,:),&
 
 dof = 1
 ! makes the msh
-msh = mshtype(dof)
 dt = 1D-2
+msh = mshtype(dof,dt)
 
 ! Initialize time integrator with damping
 CALL tintinit(0.5D0)
@@ -86,6 +86,10 @@ DO ts = 1,200
             Gg(msh%IEN(i,:)) = Gg(msh%IEN(i,:)) + G
             Ggt(msh%IEN(i,:))= Ggt(msh%IEN(i,:)) + Gt
         ENDDO
+        DO i = 1,msh%np
+        print *, Ggt(i)
+        ENDDO
+        stop
 
         DO i=1,msh%np*dof
             IF (abs(Ggt(i)) .gt. 1D-8) THEN
@@ -102,7 +106,7 @@ DO ts = 1,200
 !   Update Loops
     DO i=1,msh%np*dof
         sol%do(1,i) = sol%d(1,i)
-        sol%d(1,i)  = sol%d(1,i) + gam*dt*sol%ddot(1,i)
+!        sol%d(1,i)  = sol%d(1,i) + gam*dt*sol%ddot(1,i)
     ENDDO
 
     DO i = 1,msh%np*dof

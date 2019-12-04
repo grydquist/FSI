@@ -8,15 +8,16 @@ IMPLICIT NONE
 TYPE(mshtype) msh
 TYPE(soltype) u,p
 INTEGER, ALLOCATABLE :: bnd(:,:,:), bnd2(:,:,:), bndt(:,:,:),bnd2t(:,:,:)
-INTEGER i,j, ti,dofu, dofp, ts, dof
+INTEGER i,j,k,l,m, ti,dofu, dofp, ts, dof
 REAL(KIND=8) lx,ly,tol, dt
 !REAL(KIND=8), PARAMETER :: k=1,cv=1,mu=1,e=1,nu=.3,pi = 3.14159265358979323846264337
-REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:)
+REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), dY(:),Ggti(:,:) &
+& ,Gti(:,:)
 
 dofu = 2
 dofp = 1
 dof  = dofp + dofu
-dt = 1D-2
+dt = 1D-4
 ! makes the msh
 msh = mshtype(dof,dt)
 
@@ -35,9 +36,12 @@ bnd2 = bnd
 ! Put in my boundary conditions
 DO i = 1,msh%np
     DO j =1,dof
-        IF (ANY((msh%x(i,:) .gt. 7.999999D0)).or.ANY((msh%x(i,:) .lt. 1D-8)).and.(j.lt.3)) THEN
+        bnd(i,1,j) = 0
+        IF (ANY((msh%x(i,:) .gt. 7.999999D0)).or.ANY((msh%x(i,:) .lt. 1D-8))) THEN
+            IF (j.lt.3) THEN
             bnd(i,1,j) = 1
             bnd(i,2,j) = 0
+            ENDIF
         ENDIF
 !           Add in cavity-driven BC
         IF((msh%x(i,2) .gt. 7.999999D0).and.(j.eq.1)) THEN
@@ -68,25 +72,25 @@ CALL msh%bound(bnd)
 
 ALLOCATE(fun(dof,msh%el(1)%gp))
 ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
-& Gt(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof), Ggt(msh%np*dof,msh%np*dof))
+& Gt(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof), Ggt(msh%np*dof,msh%np*dof),&
+& Ggti(msh%np*dof,msh%np*dof), dY(msh%np*dof), Gti(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof))
 
 fun(1,:) = 0
 tol = 0
 u%d    = u%do
 p%d    = p%do
 
-open(88,file = 'd.txt',position = 'append')
+open(88,file = 'u.txt',position = 'append')
 
-DO ts = 1,200
+DO ts = 1,5
 !   Reset iteration counter
     ti = 0
 
 !   Make first interation guess
     u%ddot = u%ddoto*(gam - 1D0)/gam
-    p%ddot = p%ddoto*(gam - 1D0)/gam
 
 !   Iteration loop
-    DO WHILE ((tol .lt. 1e-3) .or. (ti .lt. 16))
+    DO ti = 1,15!WHILE ((ti .lt. 16).or.(tol .lt. 1e-3))
         Gg = 0
         Ggt= 0
 !       Get solutions at alphas
@@ -96,42 +100,69 @@ DO ts = 1,200
         DO i=1,msh%nEL
 !           Get residual matrix/vector
             CALL lresidns(G,Gt,fun,msh%el(i),u,p)
+            IF(ANY(msh%IEN(i,:).eq.5)) THEN
+                DO j=1,9
+                    !print *, G(j), msh%IEN(i,:)
+                ENDDO
+                !print *, 1
+            ENDIF
 !           Put back into global
             DO j=1,dof
-                Gg (dof*(msh%IEN(i,:)-1)+j)  = Gg(dof*(msh%IEN(i,:)-1)+j) + G
-                !Ggt(dof*(msh%IEN(i,:)-1)+j,:)= Ggt(dof*(msh%IEN(i,:)-1)+j,:) + Gt
+                DO k = 1,msh%eNoN
+                    Gg (dof*(msh%IEN(i,k)-1)+j)  = Gg(dof*(msh%IEN(i,k)-1)+j) + G((k-1)*dof+j)
+                    DO l=1,dof
+                        DO m = 1,msh%eNoN
+                            Ggt(dof*(msh%IEN(i,k)-1)+j,dof*(msh%IEN(i,m)-1)+l) = &
+                        &   Ggt(dof*(msh%IEN(i,k)-1)+j,dof*(msh%IEN(i,m)-1)+l) + Gt((k-1)*dof+j,(m-1)*dof+l)
+                        ENDDO
+                    ENDDO
+                ENDDO
             ENDDO
-            if(maxval(msh%x(msh%el(i)%nds,2)) .gt. 7.999) THEN
-                !print *, G, maxval(msh%x(msh%el(i)%nds,1))
-            ENDIF
         ENDDO
 
-        DO i=1,msh%np*dof
+        Ggt = TRANSPOSE(Ggt)
+        
+        CALL INVERSE(Ggt,Ggti,msh%np*dof)
+        DO i = 1,msh%np
+            !print *, i ,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
+            DO j = 1,dof
+            !write(88,*) Gg((i-1)*dof+j)
+                !print *, j
+                !print *, Ggt((i-1)*dof+j,:)
+                DO k = 1,msh%np
+                    DO l = 1,dof
+                        write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
+                    ENDDO
+                ENDDO
+            ENDDO
+        ENDDO
+
+        dY = matmul(Ggti,-Gg)
+
+        DO i=1,msh%np
+            print *, dY(i*dof-2), dY(i*dof-1), dY(i*dof), i
             DO j=1,dof
                 IF (j.lt.3) THEN
-                   ! u%ddot(j,i)  = u%ddot(j,i) + Gg(i)/Ggt(i)
-                   ! u%d(j,i) = u%d(1,i) + p%ddot(1,i)*gam*dt
+                    u%ddot(j,i)  = u%ddot(j,i) + dY((i-1)*dof + j)
+                    u%d(j,i)     = u%d(j,i) + u%ddot(j,i)*gam*dt
+                    IF(bnd(i,1,j).eq.1)  u%d(j,i) = bnd(i,2,j)
                 ELSE
-
+                    p%d(1,i)       = p%d(1,i) + dY((i-1)*dof + j)
+                    IF(bnd(i,1,j).eq.1)  p%d(1,i) = bnd(i,2,j)
                 ENDIF
             ENDDO
         ENDDO
-        
-        ti = ti+1
-
+        stop
     ENDDO
-
 
 !   Update Loops
     DO i=1,msh%np
-        DO j = 1,dof
-            !p%do(1,i) = p%d(1,i)
-            !p%d(1,i)  = p%d(1,i) + gam*dt*p%ddot(1,i)
+        p%do(1,i) = p%d(1,i)
+        DO j = 1,u%dof
+            u%do(j,i) = u%d(j,i)
         ENDDO
-    ENDDO
-
-    DO i = 1,msh%np*dof
-        !write(88,*) p%d(1,i)
+        write(88,*) u%d(1,i)
+        write(88,*) u%d(2,i)
     ENDDO
 ENDDO
 

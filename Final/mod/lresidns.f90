@@ -11,7 +11,7 @@ TYPE(eltype), INTENT(IN) :: el
 REAL(KIND=8), ALLOCATABLE, INTENT(IN) :: fun(:,:)
 TYPE(soltype), INTENT(IN) :: u,p
 REAL(KIND=8), INTENT(OUT) :: G(el%eNoN*el%dof),Gt(el%eNoN*el%dof,el%eNoN*el%dof)
-INTEGER :: a,b,gp,i,j,ai,bi, ag,bg
+INTEGER :: a,b,gp,i,j,ai,bi, ag
 ! Subgrid variables
 REAL(KIND=8) up(u%dof,el%eNoN), pp(p%dof,el%eNoN), ugp(u%dof,el%gp), &
 &            duxgp(u%dof,u%dof,el%gp), dutgp(u%dof,el%gp), pgp(el%gp), &
@@ -60,15 +60,11 @@ ENDDO
 
 ! Loop through element nodes to calc resid without subgrid
 DO a = 1,el%eNoN
-ag = el%nds(a)
 ! Loop through dof (for index a)
 DO i = 1,el%dof
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
-    IF (el%bnd(a,1,i).eq.0) THEN
-!       Go through surrounding nodes and incorporate into resid for a 
-        DO b = 1,el%eNoN
-            bg = el%nds(b)
+   IF (el%bnd(a,1,i).eq.0) THEN
 !           Loop through Gauss points to calc integral
 !           If i = 1, we're dealing with x-mom, 2->y-mom, 3->cont
             IF((i.eq.1).or.(i.eq.2)) THEN
@@ -98,7 +94,6 @@ DO i = 1,el%dof
                    &     * (duxgp(1,1,gp) + duxgp(2,2,gp)))*el%Wg(gp)
                 ENDDO
             ENDIF
-        ENDDO
     ENDIF
 ENDDO
 ENDDO
@@ -119,6 +114,7 @@ DO a = 1,el%eNoN
     &       * (el%eG(1,1)*el%eG(1,1) + el%eG(1,2)*el%eG(1,2) &
     &       +  el%eG(2,1)*el%eG(2,1) + el%eG(2,2)*el%eG(2,2))&
     &       + 4D0/el%dt/el%dt)**(-0.5D0)
+    !taum(a) = 0
 
     nuc(a) = 1/(el%eG(1,1)+el%eG(2,2))/taum(a)
 
@@ -153,14 +149,11 @@ ai = 0
 
 ! Loop through element nodes to calc resid with subgrid
 DO a = 1,el%eNoN
-ag = el%nds(a)
 ! Loop through dof (for index a)
 DO i = 1,el%dof
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
     IF (el%bnd(a,1,i).eq.0) THEN
-!       Go through surrounding nodes and incorporate into resid for a 
-        DO b = 1,el%eNoN
 !           Loop through Gauss points to calc integral
 !           If i = 1, we're dealing with x-mom, 2->y-mom, 3->cont
             IF((i.eq.1).or.(i.eq.2)) THEN
@@ -185,11 +178,9 @@ DO i = 1,el%dof
                     &     + Nxg(a,2,gp)*upgp(2,gp))*el%Wg(gp)
                 ENDDO
             ENDIF
-        ENDDO
     ENDIF
 ENDDO
 ENDDO
-
 ai = 0
 
 ! Now for the tangent matrix
