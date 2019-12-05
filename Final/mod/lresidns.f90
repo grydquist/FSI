@@ -122,11 +122,11 @@ DO a = 1,el%eNoN
     &       * (el%eG(1,1)*el%eG(1,1) + el%eG(1,2)*el%eG(1,2) &
     &       +  el%eG(2,1)*el%eG(2,1) + el%eG(2,2)*el%eG(2,2))&
     &       + 4D0/el%dt/el%dt)**(-0.5D0)
-    !taum(a) = 0
-    !taum(a) = 1D-7
+    taum(a) = 0
+    taum(a) = 1D-7
 
     nuc(a) = 1/(el%eG(1,1)+el%eG(2,2))/taum(a)
-    !nuc(a) = 1D-7
+    nuc(a) = 1D-7
 
     DO i =1,u%dof
         ai = ai + 1

@@ -158,7 +158,7 @@ DO ts = 1,10
             ENDDO
         ENDDO
         print *, ti, ts, maxval(abs(Gg)), maxval(abs(dy))
-        if(ti.eq.3) stop
+        if(ti.eq.1) stop
     ENDDO
 
 !   Update Loops
