@@ -54,9 +54,6 @@ DO i = 1,msh%np
         ENDIF
     ENDDO
 ENDDO
-bnd(:,1,3) = 1
-bnd(:,2,3) = 0
-bnd(5,1,3) = 0
 
 ! Make solution structure
 ALLOCATE(bndt(msh%np,2,dofu),bnd2t(msh%np,2,dofu))
@@ -85,7 +82,7 @@ p%d    = p%do
 
 open(88,file = 'u.txt',position = 'append')
 
-DO ts = 1,5
+DO ts = 1,10
 !   Reset iteration counter
     ti = 0
 
@@ -93,8 +90,7 @@ DO ts = 1,5
     u%ddot = u%ddoto*(gam - 1D0)/gam
 
 !   Iteration loop
-    DO ti = 1,15!WHILE ((ti .lt. 16).or.(tol .lt. 1e-3))
-        print *, ti
+    DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))
         Gg = 0
         Ggt= 0
 !       Get solutions at alphas
@@ -119,6 +115,7 @@ DO ts = 1,5
             ENDDO
         ENDDO
 
+!       Boundary conditions: just make rows equal to 0 and 1 on diag
         DO i = 1,msh%np
             DO j = 1,dof
                 IF (bnd(i,1,j) .eq. 1) THEN
@@ -131,7 +128,7 @@ DO ts = 1,5
         
         CALL INVERSE(Ggt,Ggti,msh%np*dof)
         DO i = 1,msh%np
-            !print *, i ,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
+            print *, i ,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
             DO j = 1,dof
             !write(88,*) Gg((i-1)*dof+j)
                 !print *, j
@@ -143,6 +140,9 @@ DO ts = 1,5
                 ENDDO
             ENDDO
         ENDDO
+        DO i = 1,27
+            !print *, Ggt(13,i), Ggt(14,i) 
+        ENDDO
 
         dY = matmul(Ggti,-Gg)
 
@@ -151,16 +151,14 @@ DO ts = 1,5
             DO j=1,dof
                 IF (j.lt.3) THEN
                     u%ddot(j,i)  = u%ddot(j,i) + dY((i-1)*dof + j)
-                    u%d(j,i)     = u%d(j,i) + u%ddot(j,i)*gam*dt
-                    IF(bnd(i,1,j).eq.1)  u%d(j,i) = bnd(i,2,j)
+                    u%d(j,i)     = u%d(j,i) + u%ddot(j,i)*gam*dt !!!!????
                 ELSE
                     p%d(1,i)       = p%d(1,i) + dY((i-1)*dof + j)
-                    IF(bnd(i,1,j).eq.1)  p%d(1,i) = bnd(i,2,j)
                 ENDIF
             ENDDO
         ENDDO
-        print *, u%d(1,5)
-        if(ts.eq.2) stop
+        print *, ti, ts, maxval(abs(Gg)), maxval(abs(dy))
+        if(ti.eq.3) stop
     ENDDO
 
 !   Update Loops

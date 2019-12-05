@@ -7,7 +7,7 @@ fclose(fileid);
 %d2 = d(2:2:end);
 %d1 = reshape(d1,nx,ny);
 %d2 = reshape(d2,nx,ny);
-d = reshape(d,nx,ny,200);
+%d = reshape(d,nx,ny,200);
 X = reshape(x(1,:),nx,ny);
 Y = reshape(x(2,:),nx,ny);
 
@@ -32,5 +32,14 @@ fclose(fileid);
 u = ut(1:2:end);
 v = ut(2:2:end);
 
-u = reshape(u,nx,ny,5);
-v = reshape(v,nx,ny,5);
+pts = 10;
+u = reshape(u,nx,ny,pts);
+v = reshape(v,nx,ny,pts);
+for i=1:pts
+    u(:,:,i) = u(:,:,i)';
+    v(:,:,i) = v(:,:,i)';
+    clf;
+    quiver(u(:,:,i),v(:,:,i))
+    hold on
+    pause(0.1)
+end

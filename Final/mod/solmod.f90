@@ -40,6 +40,10 @@ FUNCTION newsol(dof,np,bnd1,bnd2) RESULT(sol)
             IF (sol%bnd(i,1,j) .eq. 1) THEN
                 sol%d(j,i) = sol%bnd(i,2,j)
                 sol%do(j,i)= sol%bnd(i,2,j)
+                !IF (sol%bnd(i,2,j).eq.1) THEN!!!!!!!!!!!!!!!!!!1
+                !    sol%d(j,i) = 0.1D0
+                !    sol%do(j,i)= 0.1D0
+                !ENDIF!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ELSE
                 sol%d(j,i) = 0
                 sol%do(j,i)= 0
