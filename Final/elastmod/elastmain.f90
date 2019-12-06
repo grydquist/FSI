@@ -2,22 +2,21 @@ PROGRAM MAIN
 USE TINTMOD
 USE MSHMOD
 USE SOLMOD
-USE LRESIDNSMOD
+USE LRESIDELASTMOD
 USE SOLVEMOD
 IMPLICIT NONE
 TYPE(mshtype) msh
-TYPE(soltype) u,p
+TYPE(soltype) yd, y
 INTEGER, ALLOCATABLE :: bnd(:,:,:), bnd2(:,:,:), bndt(:,:,:),bnd2t(:,:,:)
-INTEGER i,j,k,l,m, ti,dofu, dofp, ts, dof,cnt
+INTEGER i,j,k,l,m, ti, dofy, ts, dof,cnt
 REAL(KIND=8) lx,ly,tol, dt
 !REAL(KIND=8), PARAMETER :: k=1,cv=1,mu=1,e=1,nu=.3,pi = 3.14159265358979323846264337
 REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), dY(:),Ggti(:,:) &
 & ,Gti(:,:)
 
-dofu = 2
-dofp = 1
-dof  = dofp + dofu
-dt = 1D-4
+dofy = 2
+dof  = dofy
+dt = 1D-2
 ! makes the msh
 msh = mshtype(dof,dt)
 
@@ -43,32 +42,15 @@ DO i = 1,msh%np
             bnd(i,2,j) = 0
             ENDIF
         ENDIF
-!           Add in cavity-driven BC
-        IF((msh%x(i,2) .gt. maxval(msh%x(:,1))-1d-8).and.(j.eq.1)) THEN
-            bnd(i,1,j) = 1
-            bnd(i,2,j) = 1
-        ENDIF
-        IF ((abs(msh%x(i,1)-maxval(msh%x(:,1))/2).lt.1D-8).and.(abs(msh%x(i,2)-maxval(msh%x(:,1))/2).lt.1D-8).and.(j.eq.3)) THEN
-            bnd(i,1,j) = 1
-            bnd(i,2,j) = 0
-        ENDIF
     ENDDO
 ENDDO
-!bnd(:,1,3) = 1
-!bnd(:,2,3) = 0
-!bnd(5,1,3) = 0
 
 ! Make solution structure
-ALLOCATE(bndt(msh%np,2,dofu),bnd2t(msh%np,2,dofu))
+ALLOCATE(bndt(msh%np,2,dofy),bnd2t(msh%np,2,dofy))
 bndt = bnd(:,:,1:2)
 bnd2t= bnd2(:,:,1:2)
-u = soltype(dofu, msh%np, bndt, bnd2t)
-DEALLOCATE(bndt,bnd2t)
-ALLOCATE(bndt(msh%np,2,dofp),bnd2t(msh%np,2,dofp))
-bndt(:,:,1) = bnd(:,:,3)
-bnd2t(:,:,1)= bnd2(:,:,3)
-p = soltype(dofp, msh%np, bndt, bnd2t)
-
+y = soltype(dofy, msh%np, bndt, bnd2t)
+yd= soltype(dofy, msh%np, bndt, bnd2t)
 
 ! Add in the BC info
 CALL msh%bound(bnd)
@@ -78,19 +60,19 @@ ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
 & Gt(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof), Ggt(msh%np*dof,msh%np*dof),&
 & Ggti(msh%np*dof,msh%np*dof), dY(msh%np*dof), Gti(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof))
 
-fun(1,:) = 0
+fun(:,:) = 0
 tol = 0
-u%d    = u%do
-p%d    = p%do
+yd%d    = yd%do
+y%d     = y%do
 
-open(88,file = 'u.txt',position = 'append')
+open(88,file = 'y.txt',position = 'append')
 
 DO ts = 1,25
 !   Reset iteration counter
     ti = 0
 
 !   Make first interation guess
-    u%ddot = u%ddoto*(gam - 1D0)/gam
+    yd%ddot = yd%ddoto*(gam - 1D0)/gam
 
 !   Iteration loop
     DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))
@@ -98,12 +80,12 @@ DO ts = 1,25
         Ggt= 0
         dY = 0
 !       Get solutions at alphas
-        CALL toalph(u)
+        CALL toalph(y)
 
 !       Big loop through elements
         DO i=1,msh%nEL
 !           Get residual matrix/vector
-            CALL lresidns(G,Gt,fun,msh%el(i),u,p)
+            !CALL lresidns(G,Gt,fun,msh%el(i),u,p)
 !           Put back into global
             DO j=1,dof
                 DO k = 1,msh%eNoN
@@ -151,27 +133,24 @@ DO ts = 1,25
         DO i=1,msh%np
             !print *, dY(i*dof-2), dY(i*dof-1), dY(i*dof), i
             DO j=1,dof
-                IF (j.lt.3) THEN
-                    u%ddot(j,i)  = u%ddot(j,i) + dY((i-1)*dof + j)
-                    u%d(j,i)     = u%d(j,i) + gam*dt*dY((i-1)*dof + j)!u%do(j,i) + u%ddot(j,i)*gam*dt
-                ELSE
-                    p%d(1,i)     = p%d(1,i) + dY((i-1)*dof + j)
-                ENDIF
+                y%ddd(j,i) = y%ddd(j,i) + dY((i-1)*dof + j)
+                y%ddot(j,i)= y%ddot(j,i)+ gam*dt*dY((i-1)*dof + j)
+                y%d(j,i)   = y%d(j,i)   + bet*dt*dt*dY((i-1)*dof + j)
             ENDDO
         ENDDO
         print *, ti, ts, maxval(abs(Gg)), minval((dy))
-        !if(ti.eq.10) stop
+        if(ti.eq.1) stop
     ENDDO
 
 !   Update Loops
     DO i=1,msh%np
-        p%do(1,i) = p%d(1,i)
-        DO j = 1,u%dof
-            u%ddoto(j,i) = u%ddot(j,i)
-            u%do(j,i) = u%d(j,i)
+        DO j = 1,y%dof
+            y%dddo(j,i) = y%ddd(j,i)
+            y%ddoto(j,i) = y%ddot(j,i)
+            y%do(j,i) = y%d(j,i)
         ENDDO
-        write(88,*) u%d(1,i)
-        write(88,*) u%d(2,i)
+        write(88,*) y%d(1,i)
+        write(88,*) y%d(2,i)
     ENDDO
 ENDDO
 

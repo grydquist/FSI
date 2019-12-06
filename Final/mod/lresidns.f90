@@ -68,53 +68,10 @@ DO gp = 1,el%gp
     ENDDO
 ENDDO
 
-! Loop through element nodes to calc resid without subgrid
-DO a = 1,el%eNoN
-! Loop through dof (for index a)
-DO i = 1,el%dof
-    ai = ai+1
-!   If this isn't a boundary node, go ahead and calculate the resid at a
-    IF (el%bnd(a,1,i).eq.0) THEN
-!           Loop through Gauss points to calc integral
-!           If i = 1, we're dealing with x-mom, 2->y-mom, 3->cont
-            IF((i.eq.1).or.(i.eq.2)) THEN
-!               Calculate Rm in direction i for node a (G(1:2))
-                DO gp = 1,el%gp
-                    G(ai) = G(ai) &
-!                   Advection/forcing part
-                    &     + (Ng(a,gp)*(dutgp(i,gp)+(ugp(1,gp)*duxgp(i,1,gp) + ugp(2,gp)*duxgp(i,2,gp)) - fun(i,gp)) &
-
-                    !&     +(Ng(a,gp)*rho*(dutgp(i,gp) &
-                    !&     + ugp(1,gp)*duxgp(i,1,gp) &
-                    !&     + ugp(2,gp)*duxgp(i,2,gp) &
-                    !&     - fun(i,gp)) &
-!                   Viscous part
-                    &     + mu*2D0 &
-                    &     *(duxgp(i,1,gp)*Nxg(a,1,gp) &
-                    &     + duxgp(i,2,gp)*Nxg(a,2,gp) &
-                    &     + duxgp(1,i,gp)*Nxg(a,1,gp) &
-                    &     + duxgp(2,i,gp)*Nxg(a,2,gp))&
-!                   Pressure part
-                    &     - Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)*el%J
-!                   Traction part (0 for now)
-                ENDDO
-            ELSE
-!               Calulate Rc for node a (G(3))
-                DO gp = 1,el%gp
-                   G(ai) = G(ai) &
-                   &     + (Ng(a,gp) &
-                   &     * (duxgp(1,1,gp) + duxgp(2,2,gp)))*el%Wg(gp)*el%J
-                ENDDO
-            ENDIF
-    ENDIF
-ENDDO
-ENDDO
-
-ai = 0
 upgp = 0
 ppgp = 0
 
-! Calculate Rm at gauss points
+! Calculate Rm at gauss points for subgrid stuff
 DO i = 1,u%dof
     DO gp  = 1,el%gp
         Rm(i,gp) = rho*(dutgp(i,gp) + ugp(1,gp)*duxgp(i,1,gp) + ugp(2,gp)*duxgp(i,2,gp) - fun(i,gp)) & 
@@ -137,18 +94,16 @@ DO gp = 1,el%gp
     &          * (el%eG(1,1)*el%eG(1,1) + el%eG(1,2)*el%eG(1,2) &
     &          +  el%eG(2,1)*el%eG(2,1) + el%eG(2,2)*el%eG(2,2))&
     &          + 4D0/el%dt/el%dt)**(-0.5D0)
-    !taumgp(gp) = 0
 
     nucgp(gp) = 1/(el%eG(1,1)+el%eG(2,2))/taumgp(gp)
-    !nucgp(gp) = 1d-5
 
     DO i = 1,u%dof
         upgp(i,gp) = -taumgp(gp)*Rm(i,gp)/rho
+        ugp(i,gp) = ugp(i,gp) + upgp(i,gp)
     ENDDO
     ppgp(gp) = -rho*nucgp(gp)*Rc(gp)
+    pgp(gp) = pgp(gp) + ppgp(gp)
 ENDDO
-
-ai = 0
 
 ! Loop through element nodes to calc resid with subgrid
 DO a = 1,el%eNoN
@@ -162,30 +117,35 @@ DO i = 1,el%dof
             IF((i.eq.1).or.(i.eq.2)) THEN
 !               Calculate Rm in direction i for node a (G(1:2))
                 DO gp = 1,el%gp
-                    G(ai) = G(ai) + (0&
-!                   First term
-                    !&     + Ng(a,gp)*rho*(upgp(1,gp)*duxgp(i,1,gp) &
-                    !&     + upgp(2,gp)*duxgp(i,2,gp)) &
-!                   Skip second u'*u' term, third term
-                    !&     +(ugp(1,gp)*Nxg(a,1,gp)  &
-                    !&     + ugp(2,gp)*Nxg(a,2,gp)) &
-                    !&     * upgp(i,gp)*rho &
-!                   Pressure term
-                    !&     - Nxg(a,i,gp)*ppgp(gp) &
-                    &     )*el%Wg(gp)*el%J
+                    G(ai) = G(ai) &
+!                   Advection/forcing part
+                    &     +(Ng(a,gp)*rho*(dutgp(i,gp) &
+                    &     + ugp(1,gp)*duxgp(i,1,gp) &
+                    &     + ugp(2,gp)*duxgp(i,2,gp) &
+                    &     - fun(i,gp)) &
+!                   Viscous part
+                    &     + mu*2D0 &
+                    &     *(duxgp(i,1,gp)*Nxg(a,1,gp) &
+                    &     + duxgp(i,2,gp)*Nxg(a,2,gp) &
+                    &     + duxgp(1,i,gp)*Nxg(a,1,gp) &
+                    &     + duxgp(2,i,gp)*Nxg(a,2,gp))&
+!                   Pressure part
+                    &     - Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)*el%J
+!                   Traction part (0 for now)
                 ENDDO
             ELSE
 !               Calulate Rc for node a (G(3))
                 DO gp = 1,el%gp
-                    G(ai) = G(ai) + (0&
-                    !&     - Nxg(a,1,gp)*upgp(1,gp) &
-                    !&     + Nxg(a,2,gp)*upgp(2,gp) &
-                    &     )*el%Wg(gp)*el%J
+                   G(ai) = G(ai) &
+                   &     + (Ng(a,gp) &
+                   &     * (duxgp(1,1,gp) + duxgp(2,2,gp)))*el%Wg(gp)*el%J
                 ENDDO
             ENDIF
     ENDIF
 ENDDO
 ENDDO
+
+
 ai = 0
 
 ! Now for the tangent matrix

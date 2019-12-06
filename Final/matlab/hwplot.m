@@ -101,8 +101,8 @@ pts = 25;
 u = reshape(u,nx,ny,pts);
 v = reshape(v,nx,ny,pts);
 for i=1:pts
-    %u(:,:,i) = u(:,:,i)';
-    %v(:,:,i) = v(:,:,i)';
+    u(:,:,i) = u(:,:,i)';
+    v(:,:,i) = v(:,:,i)';
     clf;
     quiver(u(:,:,i),v(:,:,i))
     hold on
