@@ -54,6 +54,9 @@ DO i = 1,msh%np
         ENDIF
     ENDDO
 ENDDO
+!bnd(:,1,3) = 1
+!bnd(:,2,3) = 0
+!bnd(5,1,3) = 0
 
 ! Make solution structure
 ALLOCATE(bndt(msh%np,2,dofu),bnd2t(msh%np,2,dofu))
@@ -82,7 +85,7 @@ p%d    = p%do
 
 open(88,file = 'u.txt',position = 'append')
 
-DO ts = 1,10
+DO ts = 1,15
 !   Reset iteration counter
     ti = 0
 
@@ -93,6 +96,7 @@ DO ts = 1,10
     DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))
         Gg = 0
         Ggt= 0
+        dY = 0
 !       Get solutions at alphas
         CALL toalph(u)
 
@@ -126,24 +130,21 @@ DO ts = 1,10
             ENDDO
         ENDDO
         
-        CALL INVERSE(Ggt,Ggti,msh%np*dof)
+        
         DO i = 1,msh%np
-            print *, i ,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
+            !print *, i !,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
             DO j = 1,dof
-            !write(88,*) Gg((i-1)*dof+j)
+                !if (ti.eq.2) write(88,*) Gg((i-1)*dof+j)
                 !print *, j
                 !print *, Ggt((i-1)*dof+j,:)
                 DO k = 1,msh%np
                     DO l = 1,dof
-                        !write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
+                        write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
                     ENDDO
                 ENDDO
             ENDDO
         ENDDO
-        DO i = 1,27
-            !print *, Ggt(13,i), Ggt(14,i) 
-        ENDDO
-
+        CALL INVERSE(Ggt,Ggti,msh%np*dof)
         dY = matmul(Ggti,-Gg)
 
         DO i=1,msh%np
@@ -151,13 +152,13 @@ DO ts = 1,10
             DO j=1,dof
                 IF (j.lt.3) THEN
                     u%ddot(j,i)  = u%ddot(j,i) + dY((i-1)*dof + j)
-                    u%d(j,i)     = u%d(j,i) + u%ddot(j,i)*gam*dt !!!!????
+                    u%d(j,i)     = u%d(j,i) + gam*dt*dY((i-1)*dof + j)!u%do(j,i) + u%ddot(j,i)*gam*dt
                 ELSE
-                    p%d(1,i)       = p%d(1,i) + dY((i-1)*dof + j)
+                    p%d(1,i)     = p%d(1,i) + dY((i-1)*dof + j)
                 ENDIF
             ENDDO
         ENDDO
-        print *, ti, ts, maxval(abs(Gg)), maxval(abs(dy))
+        print *, ti, ts, maxval(abs(Gg)), minval((dy))
         if(ti.eq.1) stop
     ENDDO
 
@@ -165,6 +166,7 @@ DO ts = 1,10
     DO i=1,msh%np
         p%do(1,i) = p%d(1,i)
         DO j = 1,u%dof
+            u%ddoto(j,i) = u%ddot(j,i)
             u%do(j,i) = u%d(j,i)
         ENDDO
         write(88,*) u%d(1,i)

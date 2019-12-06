@@ -41,8 +41,8 @@ FUNCTION newsol(dof,np,bnd1,bnd2) RESULT(sol)
                 sol%d(j,i) = sol%bnd(i,2,j)
                 sol%do(j,i)= sol%bnd(i,2,j)
                 !IF (sol%bnd(i,2,j).eq.1) THEN!!!!!!!!!!!!!!!!!!1
-                !    sol%d(j,i) = 0.1D0
-                !    sol%do(j,i)= 0.1D0
+                !    sol%d(j,i) = 0.001D0
+                !    sol%do(j,i)= 0.001D0
                 !ENDIF!!!!!!!!!!!!!!!!!!!!!!!!!!!
             ELSE
                 sol%d(j,i) = 0

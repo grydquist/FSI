@@ -3,6 +3,35 @@
 fileid = fopen('d.txt');
 d = fscanf(fileid,'%f');
 fclose(fileid);
+
+fileid = fopen('gg.txt');
+gg = fscanf(fileid,'%f');
+fclose(fileid);
+%%
+fileid = fopen('ggt.txt');
+ggt = fscanf(fileid,'%f');
+fclose(fileid);
+ggt = reshape(ggt,27,27);
+ggt = ggt';
+
+
+
+dm1 = ggt(1:3:end,:);
+dm2 = ggt(2:3:end,:);
+dc = ggt(3:3:end,:);
+
+dm1d1= dm1(:,1:3:end);
+dm1d2= dm1(:,2:3:end);
+dm1dp= dm1(:,3:3:end);
+
+dm2d1= dm2(:,1:3:end);
+dm2d2= dm2(:,2:3:end);
+dm2dp= dm2(:,3:3:end);
+
+dcd1 = dc(:,1:3:end);
+dcd2 = dc(:,2:3:end);
+dcdp = dc(:,3:3:end);
+%%
 %d1 = d(1:2:end);
 %d2 = d(2:2:end);
 %d1 = reshape(d1,nx,ny);
@@ -32,7 +61,7 @@ fclose(fileid);
 u = ut(1:2:end);
 v = ut(2:2:end);
 
-pts = 10;
+pts = 3;
 u = reshape(u,nx,ny,pts);
 v = reshape(v,nx,ny,pts);
 for i=1:pts
