@@ -8,7 +8,7 @@ IMPLICIT NONE
 TYPE(mshtype) msh
 TYPE(soltype) u,p
 INTEGER, ALLOCATABLE :: bnd(:,:,:), bnd2(:,:,:), bndt(:,:,:),bnd2t(:,:,:)
-INTEGER i,j,k,l,m, ti,dofu, dofp, ts, dof
+INTEGER i,j,k,l,m, ti,dofu, dofp, ts, dof,cnt
 REAL(KIND=8) lx,ly,tol, dt
 !REAL(KIND=8), PARAMETER :: k=1,cv=1,mu=1,e=1,nu=.3,pi = 3.14159265358979323846264337
 REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), dY(:),Ggti(:,:) &
@@ -85,7 +85,7 @@ p%d    = p%do
 
 open(88,file = 'u.txt',position = 'append')
 
-DO ts = 1,15
+DO ts = 1,25
 !   Reset iteration counter
     ti = 0
 
@@ -130,21 +130,22 @@ DO ts = 1,15
             ENDDO
         ENDDO
         
-        
+        CALL INVERSE(Ggt,Ggti,msh%np*dof)
+        cnt = 0
         DO i = 1,msh%np
-            !print *, i !,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
+            print *, i ,GG(i*dof-2),GG(i*dof-1),GG(i*dof)
             DO j = 1,dof
                 !if (ti.eq.2) write(88,*) Gg((i-1)*dof+j)
                 !print *, j
                 !print *, Ggt((i-1)*dof+j,:)
                 DO k = 1,msh%np
                     DO l = 1,dof
-                        write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
+                        cnt = cnt+1
+                        !write(88,*) Ggt((i-1)*dof+j,(k-1)*dof+l)
                     ENDDO
                 ENDDO
             ENDDO
         ENDDO
-        CALL INVERSE(Ggt,Ggti,msh%np*dof)
         dY = matmul(Ggti,-Gg)
 
         DO i=1,msh%np
@@ -159,7 +160,7 @@ DO ts = 1,15
             ENDDO
         ENDDO
         print *, ti, ts, maxval(abs(Gg)), minval((dy))
-        if(ti.eq.1) stop
+        !if(ti.eq.15) stop
     ENDDO
 
 !   Update Loops

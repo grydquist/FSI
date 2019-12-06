@@ -1,8 +1,8 @@
 clear IEN x;
 lx = 1;
 ly = 1;
-nx = 3;
-ny = 3;
+nx = 9;
+ny = 9;
 nsd = 2;
 x = zeros(nsd,nx*ny);
 nt = length(x(1,:));
@@ -11,12 +11,12 @@ nsd = 2;
 %% Allocate x and conectivity matrix
 
 for i = 1:ny
-    x(1,(1 + nx*(i-1):nx*i)) = linspace(0,lx,nx);    
+    x(2,(1 + nx*(i-1):nx*i)) = linspace(0,lx,nx);    
 end
 
 tmp = linspace(0,ly,ny);
 for i = 1:ny
-    x(2,(1 + nx*(i-1):nx*i)) = tmp(i);
+    x(1,(1 + nx*(i-1):nx*i)) = tmp(i);
 end
 
 IEN = delaunay(x(1,:),x(2,:));
