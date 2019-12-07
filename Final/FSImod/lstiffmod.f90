@@ -1,4 +1,3 @@
-# 1 "/home/gjr68/Documents/HW/FSI/HW3/mod/lstiffmod.f90"
 MODULE LSTIFFMOD
     USE ELEMOD
 IMPLICIT NONE

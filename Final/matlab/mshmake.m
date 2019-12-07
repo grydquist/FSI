@@ -1,5 +1,5 @@
 clear IEN x;
-lx = 1;
+lx = 10;
 ly = 1;
 nx = 9;
 ny = 9;

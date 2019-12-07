@@ -223,4 +223,332 @@ MODULE SOLVEMOD
    RETURN
    END subroutine LUBKSB
 
+   subroutine seidel(crit,n,mat,b,omega,x,residu,iter,rc)
+    INTEGER ITERMAX            ! Maximal number of iterations
+    REAL(KIND=8) :: ONE,TWO,ZERO, TINY
+      integer,INTENT(IN) :: crit, n
+      INTEGER, INTENT(OUT) :: iter, rc
+      REAL(KIND=8), INTENT(IN) :: mat(n,n),b(n),omega
+      REAL(KIND=8), INTENT(OUT) :: residu(n)
+      REAL(KIND=8), INTENT(INOUT):: x(n)
+      INTEGER :: i,j
+    !*====================================================================*
+    !*                                                                    *
+    !*  seidel solves the linear system  mat * x = b  iteratively.        *
+    !*  Here  mat  is a nonsingular  n x n  matrix, b is the right hand   *
+    !*  side for the linear system and x is the solution.                 *
+    !*                                                                    *
+    !*  seidel uses the Gauss Seidel Method with relaxation for a given   *
+    !*  relaxation coefficient 0 < omega < 2.                             *
+    !*  If  omega = 1, the standard Gauss Seidel method (without          *
+    !*  relaxation) is performed.                                         *
+    !*                                                                    *
+    !*====================================================================*
+    !*                                                                    *
+    !*   Applications:                                                    *
+    !*   =============                                                    *
+    !*      Solve linear systems with nonsingular system matrices that    *
+    !*      satisfy one of the following criteria: row sum criterion,     *
+    !*      column sum criterion or the criterion of Schmidt and v. Mises.*
+    !*      Only if at least one of these criteria is satisfied for mat,  *
+    !*      convergence of the scheme is guaranteed [See BIBLI 11].       *
+    !*                                                                    *
+    !*====================================================================*
+    !*                                                                    *
+    !*   Input parameters:                                                *
+    !*   ================                                                 *
+    !*      crit     integer crit                                         *
+    !*               select criterion                                     *
+    !*               =1 : row sum criterion                               *
+    !*               =2 : column sum criterion                            *
+    !*               =3 : criterion of Schmidt-v.Mises                    *
+    !*               other : no check                                     *
+    !*      n        integer n ( n > 0 )                                  *
+    !*               size of mat, b and x                                 *
+    !*      mat      REAL*8   mat(n,n)                                    *
+    !*               Matrix of the liear system                           *
+    !*      b        REAL*8 b(n)                                          *
+    !*               Right hand side                                      *
+    !*      omega    REAL*8 omega; (0 < omega < 2)                        *
+    !*               Relaxation coefficient.                              *
+    !*      x        REAL*8  x(n)                                         *
+    !*               Starting vector for iteration                        *
+    !*                                                                    *
+    !*   Output parameters:                                               *
+    !*   ==================                                               *
+    !*      x        REAL*8  x(n)                                         *
+    !*               solution vector                                      *
+    !*      residu   REAL*8   residu(n)                                   *
+    !*               residual vector  b - mat * x; close to zero vector   *
+    !*      iter     integer iter                                         *
+    !*               Number of iterations performed                       *
+    !*      rc       integer return code                                  *
+    !*               =  0     solution has been found                     *
+    !*               =  1     n < 1  or omega <= 0 or omega >= 2          *
+    !*               =  2     improper mat or b or x (not used here)      *
+    !*               =  3     one diagonal element of mat vanishes        *
+    !*               =  4     Iteration number exceeded                   *
+    !*               = 11     column sum criterion violated               *
+    !*               = 12     row sum criterion violated                  *
+    !*               = 13     Schmidt-v.Mises criterion violated          *
+    !*                                                                    *
+    !*====================================================================*
+      REAL(KIND=8) tmp, eps, matt(n,n), bt(n);
+      TINY = 1.d-10
+      ONE=1.d0
+      TWO=2.d0
+      ZERO=0.d0
+      ITERMAX=500
+    
+      iter = 0                        !Initialize iteration counter
+      rc = 0
+      matt = mat
+      bt = b
+    
+      if (n<1.or.omega<=ZERO.or.omega>=TWO) then
+        rc=1
+        return
+      end if
+    
+      eps = 1.d-10
+    
+      do i=1, n                       
+
+        if (abs(matt(i,i)) .lt. TINY) then
+          rc=3
+          return
+        end if
+        tmp = ONE / matt(i,i)
+        do j=1, n
+          matt(i,j)= matt(i,j)*tmp
+        end do
+        bt(i) = bt(i)*tmp               !adjust right hand side bt
+      
+      end do
+    
+    
+      !check convergence criteria
+      if (crit==1) then
+         do i = 1, n                  !row sum criterion
+           tmp=ZERO
+           do j=1,n
+             tmp = tmp + dabs(matt(i,j))
+           end do
+           if (tmp >= TWO) then
+             rc=11
+             return
+           end if 
+         end do
+      else if (crit==2) then  
+         do j=1, n                    !column sum criterion
+         tmp=ZERO
+           do i=1,n
+             tmp = tmp + dabs(matt(i,j))
+           end do
+           if (tmp >= TWO) then
+             rc=12
+             return
+           end if
+         end do
+      else if (crit==3) then
+         tmp=ZERO
+         do i=1, n
+           do j=1, n                  !criterion of Schmidt
+             tmp = tmp + matt(i,j)**2  !von Mises
+           end do
+         end do
+         tmp = DSQRT(tmp - ONE)
+         if (tmp >= ONE) then
+           rc=13
+           return
+         end if
+      end if
+    
+      do i=1, n 
+        residu(i) = x(i)              !store x in residu
+      end do
+    
+      do while (iter <= ITERMAX)      !Begin iteration
+      
+        iter=iter+1
+    
+        do i=1, n
+          tmp=bt(i)
+          do j=1, n
+            tmp =  tmp - matt(i,j) * residu(j)
+          end do 
+          residu(i) = residu(i) + omega * tmp
+        end do
+    
+        do i=1, n                     !check break-off criterion
+          tmp = x(i) - residu(i)
+          if (DABS (tmp) <= eps) then
+            x(i) = residu(i)          !If rc = 0 at end of loop
+            rc = 0                    !  -> stop iteration
+          else
+            do j=1, n 
+              x(j) = residu(j)
+            end do
+            rc = 4
+            goto 10
+          end if
+        end do
+        if (rc == 0) goto 20          !solution found
+    10 end do                         !End iteration
+    
+    20 do i=1, n                      !find residual vector
+         tmp=bt(i)
+         do j=1, n
+           tmp = tmp - matt(i,j) * x(j)
+         end do
+         residu(i) = tmp
+       end do
+    
+      return
+    
+    end
+
+
+  !===========================================
+    SUBROUTINE SOR(n,a,b,x)
+      IMPLICIT NONE
+  
+      INTEGER,INTENT(IN)::n
+      INTEGER::i,j,k,maxn
+  
+      REAL(KIND=8):: w,s,tol,norm
+      REAL(KIND=8),DIMENSION(n,n), INTENT(IN) :: a
+      REAL(KIND=8),DIMENSION(n), INTENT(IN) :: b
+      REAL(KIND=8),DIMENSION(n), INTENT(INOUT) :: x
+      REAL(KIND=8),DIMENSION(n) :: xn
+
+      x=0
+      maxn=100
+      tol=0.00001
+      w=1.4
+
+      DO k=1,maxn
+          DO i=1,n
+              s=0
+              DO j=1,n
+                  IF (i<j) THEN
+                      s=s+a(i,j)*x(j)
+                  ELSE IF (i>j) THEN
+                      s=s+a(i,j)*xn(j)
+                  END IF
+              END DO
+              xn(i)=(1-w)*x(i)+w*(b(i)-s)/a(i,i)
+          END DO
+  
+          norm=MAXVAL(ABS(x-xn))
+          
+          IF(norm<tol)EXIT
+          x=xn
+      END DO
+      if (k.eq.maxn+1) print *, "oh no"
+  
+    END SUBROUTINE SOR
+
+    function dnrm22 ( n, x, incx )
+
+      !*****************************************************************************80
+      !
+      !! DNRM2 returns the euclidean norm of a vector.
+      !
+      !  Discussion:
+      !
+      !    This routine uses double precision real arithmetic.
+      !
+      !     DNRM2 ( X ) = sqrt ( X' * X )
+      !
+      !  Licensing:
+      !
+      !    This code is distributed under the GNU LGPL license. 
+      !
+      !  Modified:
+      !
+      !    16 May 2005
+      !
+      !  Author:
+      !
+      !    Original FORTRAN77 version by Charles Lawson, Richard Hanson, 
+      !    David Kincaid, Fred Krogh.
+      !    FORTRAN90 version by John Burkardt.
+      !
+      !  Reference:
+      !
+      !    Jack Dongarra, Jim Bunch, Cleve Moler, Pete Stewart,
+      !    LINPACK User's Guide,
+      !    SIAM, 1979,
+      !    ISBN13: 978-0-898711-72-1,
+      !    LC: QA214.L56.
+      !
+      !    Charles Lawson, Richard Hanson, David Kincaid, Fred Krogh,
+      !    Algorithm 539, 
+      !    Basic Linear Algebra Subprograms for Fortran Usage,
+      !    ACM Transactions on Mathematical Software,
+      !    Volume 5, Number 3, September 1979, pages 308-323.
+      !
+      !  Parameters:
+      !
+      !    Input, integer ( kind = 4 ) N, the number of entries in the vector.
+      !
+      !    Input, real ( kind = 8 ) X(*), the vector whose norm is to be computed.
+      !
+      !    Input, integer ( kind = 4 ) INCX, the increment between successive 
+      !    entries of X.
+      !
+      !    Output, real ( kind = 8 ) DNRM2, the Euclidean norm of X.
+      !
+        implicit none
+      
+        real ( kind = 8 ) absxi
+        real ( kind = 8 ) dnrm22
+        integer ( kind = 4 ) incx
+        integer ( kind = 4 ) ix
+        integer ( kind = 4 ) n
+        real ( kind = 8 ) norm
+        real ( kind = 8 ) scale
+        real ( kind = 8 ) ssq
+        real ( kind = 8 ) x(*)
+      
+        if ( n < 1 .or. incx < 1 ) then
+      
+          norm  = 0.0D+00
+      
+        else if ( n == 1 ) then
+      
+          norm  = abs ( x(1) )
+      
+        else
+      
+          scale = 0.0D+00
+          ssq = 1.0D+00
+      
+          do ix = 1, 1 + ( n - 1 ) * incx, incx
+            if ( abs(x(ix)) .gt. 1d-15 ) then
+              absxi = abs ( x(ix) )
+              if ( scale < absxi ) then
+                ssq = 1.0D+00 + ssq * ( scale / absxi )**2
+                scale = absxi
+              else
+                ssq = ssq + ( absxi / scale )**2
+              end if
+            end if
+          end do
+          norm  = scale * sqrt ( ssq )
+        end if
+
+        norm = 0
+        ssq = 0
+        DO ix = 1,n
+          ssq = ssq + x(ix)**2
+        ENDDO
+        norm =sqrt(ssq)
+      
+        dnrm22 = norm
+      
+        return
+      end
+
 END MODULE SOLVEMOD

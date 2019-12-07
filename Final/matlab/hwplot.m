@@ -97,14 +97,93 @@ fclose(fileid);
 u = ut(1:2:end);
 v = ut(2:2:end);
 
-pts = 25;
+pts = 100;
 u = reshape(u,nx,ny,pts);
 v = reshape(v,nx,ny,pts);
 for i=1:pts
     u(:,:,i) = u(:,:,i)';
     v(:,:,i) = v(:,:,i)';
     clf;
-    quiver(u(:,:,i),v(:,:,i))
+    quiver(u(1:end-1,:,i),v(1:end-1,:,i))
     hold on
     pause(0.1)
 end
+
+%% Elasto
+fileid = fopen('y.txt');
+yt = fscanf(fileid,'%f');
+fclose(fileid);
+%reshape(u,2,nx,ny,4)
+u = yt(1:2:end);
+v = yt(2:2:end);
+
+pts = 9;
+u = reshape(u,nx,ny,pts);
+v = reshape(v,nx,ny,pts);
+for i=1:pts
+    %u(:,:,i) = u(:,:,i)';
+    %v(:,:,i) = v(:,:,i)';
+    uu = reshape(u(:,:,i),nx*ny,1);
+    vv = reshape(v(:,:,i),nx*ny,1);
+    
+    clf;
+    %quiver(u(1:end-1,:,i),v(1:end-1,:,i))
+    %scatter(uu,vv)
+    triplot (IEN, uu, vv)
+    pbaspect([10,2,1])
+    set(gcf, 'Position',  [300, 300, 1200, 400])
+    axis([0,10.1,-1,2])
+    hold on
+    pause(0.1)
+end
+
+%% Plot v field
+
+%% Export solution ----------------------need work
+fileid = fopen('u.txt');
+ut = fscanf(fileid,'%f');
+fclose(fileid);
+
+u = ut(1:2:end);
+v = ut(2:2:end);
+eNo = 3;
+
+pts = length(u)/nNo;
+u = reshape(u,nNo,pts);
+v = reshape(v,nNo,pts);
+
+for ii = 1:pts
+    name = horzcat('vtks/result_',num2str(ii),'.vtk');
+    fileID = fopen(name,'w');
+    fprintf(fileID,'# vtk DataFile Version 3.0 \n');
+    fprintf(fileID,'Results \n');
+    fprintf(fileID,'ASCII \n');
+    fprintf(fileID,'DATASET UNSTRUCTURED_GRID \n');
+    fprintf(fileID,'POINTS \t%8.0f float \n',nNo);
+    tmp = 0;
+    for i = 1:nNo % write x
+        fprintf(fileID,'%8.4f\t %8.4f\t',X(i,:), tmp);
+        fprintf(fileID,'\n');
+    end
+    fprintf(fileID,'\n');
+    fprintf(fileID,'CELLS \t%8.0f \t%8.0f \n',nEl, 4*nEl);
+    for i = 1:nEl   % write IEN
+        fprintf(fileID,'%8.0f\t %8.0f\t',eNon, IEN(i,:)-1);
+        fprintf(fileID,'\n');
+    end
+    fprintf(fileID,'\n');
+    fprintf(fileID,'CELL_TYPES \t%8.0f \n',nEl);
+    for i = 1:nEl   % write IEN
+        fprintf(fileID,'5 \n');
+    end
+    fprintf(fileID,'\n');
+    fprintf(fileID,'POINT_DATA \t%8.0f \n',nNo);
+    fprintf(fileID,'VECTORS U float \n');
+    for i = 1:nNo % write u
+        fprintf(fileID,'%8.4f\t %8.4f\t %8.4f\t',u(i,ii),v(i,ii), tmp);
+        fprintf(fileID,'\n');
+    end
+    fclose(fileID);
+end
+
+
