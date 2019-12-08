@@ -10,7 +10,7 @@ TYPE(mshtype) msh
 TYPE(soltype) u,p,y
 INTEGER, ALLOCATABLE :: bnd(:,:,:), bnd2(:,:,:), bndt(:,:,:),bnd2t(:,:,:)
 INTEGER i,j,k,l,m, ti,dofu, dofp,dofy, ts, dof,cnt
-REAL(KIND=8) tol, dt, maxG, rtol
+REAL(KIND=8) tol, dt, maxG, rtol, t
 !REAL(KIND=8), PARAMETER :: k=1,cv=1,mu=1,e=1,nu=.3,pi = 3.14159265358979323846264337
 REAL(KIND=8), ALLOCATABLE :: fun(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), dY(:),Ggti(:,:) &
 & ,Gti(:,:), xog(:,:)
@@ -20,7 +20,7 @@ dofu = 2
 dofy = 2
 dofp = 1
 dof  = dofp + dofu + dofy
-dt = 1D-4
+dt = 1D-3
 ! makes the msh
 msh = mshtype(dof,dt)
 
@@ -46,9 +46,9 @@ DO i = 1,msh%np
         ENDIF
             
 !       Top Walls
-        IF((msh%x(i,2) .gt. maxval(msh%x(:,1))-1d-8).or.(msh%x(i,2) .lt. 1d-8)) THEN
+        IF((msh%x(i,2) .gt. maxval(msh%x(:,2))-1d-8).or.(msh%x(i,2) .lt. 1d-8)) THEN
             bnd(i,1,2) = 1
-            bnd(i,2,2) = 1
+            bnd(i,2,2) = 0
         ENDIF
 !       Square
         IF((msh%x(i,1) .gt. 4.5 - 1d-8) .and. (msh%x(i,1) .lt. 5.5 + 1d-8) .and. &
@@ -60,12 +60,10 @@ DO i = 1,msh%np
         ENDIF
 !       Fluid solid boundary
         IF((msh%x(i,2) .gt. 5.97 - 1d-8) .and. (msh%x(i,2) .lt. 5.97 + 1d-8)) THEN
-            bnd(i,1,4:5) = 1
-            bnd(i,2,4:5) = 4
+            bnd(i,1,4:5) = 4
         ENDIF
         IF((msh%x(i,2) .gt. 6.03 - 1d-8) .and. (msh%x(i,2) .lt. 6.03 + 1d-8)) THEN
-            bnd(i,1,4:5) = 1
-            bnd(i,2,4:5) = 4
+            bnd(i,1,4:5) = 4
         ENDIF
 !       Solid Bar (fixed at left edge)
         IF((msh%x(i,1) .gt. 5.5 - 1d-8)  .and. (msh%x(i,1) .lt. 5.5  + 1d-8) .and. &
@@ -143,7 +141,6 @@ ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
 xog = msh%x
 
 fun(1,:) = 0
-tol = 0
 u%d    = u%do
 p%d    = p%do
 y%d    = y%do
@@ -166,16 +163,20 @@ msh%el(8)%dom = 1
 !!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
 
+t = -dt
 DO ts = 1,1000
 !   Reset iteration counter
+    t = t + dt
     ti = 0
+    tol = 100
 
 !   Make first interation guess
     u%ddot = u%ddoto*(gam - 1D0)/gam
     y%ddd  = y%dddo *(gam - 1D0)/gam
 
 !   Iteration loop
-    DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))
+    DO WHILE ((ti .lt. 16).and.(tol .gt. 1e-5))
+        ti = ti+1
         Gg = 0
         Ggt= 0
         dY = 0
@@ -237,7 +238,7 @@ DO ts = 1,1000
         CALL qr_solve(msh%np*dof,msh%np*dof, Ggt,-Gg,dY)
 
         DO i=1,msh%np
-            print *, dY(i*dof-4), dY(i*dof-3), dY(i*dof-2), i
+            !print *, dY(i*dof-4), dY(i*dof-3), dY(i*dof-2), i
             DO j=1,dof
                 IF (j.lt.3) THEN
                     y%ddd(j,i) = y%ddd(j,i) +           dY((i-1)*dof + j)
@@ -259,8 +260,8 @@ DO ts = 1,1000
 
         tol = dnrm22(msh%np*dof,GG,1)
         rtol = dnrm22(msh%np*dof,GG/maxG,1)
-        print *, ti, ts, minval((dy)), tol, rtol, maxval(u%d(1,:))
-        if(ti.eq.10) stop
+        print *, ti, ts, minval((dy)), tol, rtol
+        !if(ti.eq.10) stop
     ENDDO
 
 !   Update Loops

@@ -75,7 +75,7 @@ ppgp = 0
 DO i = 1,u%dof
     DO gp  = 1,el%gp
         Rm(i,gp) = rho*(dutgp(i,gp) + ugp(1,gp)*duxgp(i,1,gp) + ugp(2,gp)*duxgp(i,2,gp) - fun(i,gp)) & 
-        &        - dpxgp(i,gp)
+        &        + dpxgp(i,gp)
     ENDDO
 ENDDO
 
@@ -100,10 +100,8 @@ DO gp = 1,el%gp
 !   Add subgrid values back in
     DO i = 1,u%dof
         upgp(i,gp) = -taumgp(gp)*Rm(i,gp)/rho
-        ugp(i,gp) = ugp(i,gp) + upgp(i,gp)
     ENDDO
     ppgp(gp) = -rho*nucgp(gp)*Rc(gp)
-    pgp(gp) = pgp(gp) + ppgp(gp)
 ENDDO
 
 ! Loop through element nodes to calc resid with subgrid
@@ -131,7 +129,13 @@ DO i = 1,el%dof
                     &     + duxgp(1,i,gp)*Nxg(a,1,gp) &
                     &     + duxgp(2,i,gp)*Nxg(a,2,gp))&
 !                   Pressure part
-                    &     - Nxg(a,i,gp)*pgp(gp))*el%Wg(gp)*el%J
+                    &     - Nxg(a,i,gp)*pgp(gp)       &
+!                   Subgrid...
+                    &     + Ng(a,gp)*rho*(upgp(1,gp)*duxgp(i,1,gp) + upgp(2,gp)*duxgp(i,2,gp)) &
+                    &     - upgp(i,gp)*rho*(Nxg(a,1,gp)*upgp(1,gp) + Nxg(a,2,gp)*upgp(2,gp)) &
+                    &     + upgp(i,gp)*rho*(Nxg(a,1,gp)*ugp(1,gp)  + Nxg(a,2,gp)*ugp(2,gp))  &
+                    &     - Nxg(a,i,gp)*ppgp(gp) &
+                    )*el%Wg(gp)*el%J
 !                   Traction part (0 for now)
                 ENDDO
             ELSE
@@ -139,19 +143,13 @@ DO i = 1,el%dof
                 DO gp = 1,el%gp
                    G(ai) = G(ai) &
                    &     + (Ng(a,gp) &
-                   &     * (duxgp(1,1,gp) + duxgp(2,2,gp)))*el%Wg(gp)*el%J
+                   &     * (duxgp(1,1,gp) + duxgp(2,2,gp)) &
+                   &     + taumgp(gp)/rho*(Nxg(a,1,gp)*Rm(1,gp) + Nxg(a,2,gp)*Rm(2,gp)) &
+                   &     )*el%Wg(gp)*el%J
                 ENDDO
             ENDIF
     ENDIF
 ENDDO
-ENDDO
-
-! Remove subgrid
-DO gp = 1,el%gp
-    DO i = 1,u%dof
-        ugp(i,gp) = ugp(i,gp) - upgp(i,gp)
-    ENDDO
-    pgp(gp) = pgp(gp) - ppgp(gp)
 ENDDO
  
 ai = 0

@@ -35,11 +35,11 @@ SUBROUTINE toalph(sol)
             sol%ddalphm(i,j) = sol%ddoto(i,j) + &
             &           alphm*(sol%ddot(i,j)  - sol%ddoto(i,j))
 !           Get ddot at alphf
-            sol%ddalphf(i,j) = sol%do(i,j) + &
-            &          alphf*(sol%d(i,j)  - sol%do(i,j))
+            sol%ddalphf(i,j) = sol%ddoto(i,j) + &
+            &          alphf*(sol%ddot(i,j)  - sol%ddoto(i,j))
 !           Get dddot at alphm 
-            sol%dddalphm(i,j) = sol%ddoto(i,j) + &
-            &           alphm*(sol%ddot(i,j)  - sol%ddoto(i,j))
+            sol%dddalphm(i,j) = sol%dddo(i,j) + &
+            &           alphm*(sol%ddd(i,j)  - sol%dddo(i,j))
         ENDDO
     ENDDO
 

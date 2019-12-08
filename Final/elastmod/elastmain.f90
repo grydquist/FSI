@@ -17,7 +17,7 @@ REAL(KIND=8), ALLOCATABLE :: fun(:,:),fung(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), 
 cnt = 0
 dofy = 2
 dof  = dofy
-dt = 5D-3
+dt = 1D-2
 ! makes the msh
 msh = mshtype(dof,dt)
 
@@ -70,28 +70,30 @@ DO i = 1, msh%np
     DO j = 1,dof
 !       pulling down on bottom right
         IF ((msh%x(i,1) .gt. maxval(msh%x(:,1))-1d-8).and.((msh%x(i,2) .lt. 1D-8))) THEN
-            fung(2,i) = -50D0
+            fung(2,i) = -10D0
         ENDIF
     ENDDO
 ENDDO
+fung(2,:) = -1D4
 
 tol = 0
-y%d     = y%do
+y%d = y%do
 
-open(88,file = 'y.txt',position = 'append')
 
-DO ts = 1,50
+DO ts = 1,200
 !   Reset iteration counter
     ti = 0
+    tol = 100
 
 !   Stop pulling down
-    IF(ts.eq.25) fung = 0
+    IF(ts.eq.100) fung = 0
 
 !   Make first interation guess
     y%ddd = y%ddd*(gam - 1D0)/gam
 
 !   Iteration loop
-    DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))
+    DO WHILE ((ti .lt. 16).and.(tol .gt. 1e-3))
+        ti = ti + 1
         Gg = 0
         Ggt= 0
         dY = 0
@@ -106,13 +108,10 @@ DO ts = 1,50
             DO j = 1,y%dof
                 DO a = 1,msh%el(i)%eNoN
                     DO gp = 1,msh%el(i)%gp
-                        IF (j.eq.2) THEN
-                            fun(j,gp) = fun(j,gp) + fung(j,msh%el(i)%nds(a))*msh%el(i)%Ng(a,gp)
-                        ENDIF
+                        fun(j,gp) = fun(j,gp) + fung(j,msh%el(i)%nds(a))*msh%el(i)%Ng(a,gp)
                     ENDDO
                 ENDDO
             ENDDO
-
 !           Get residual matrix/vector
             CALL lresidelast(G,Gt,fun,msh%el(i),y)
 !           Put back into global
@@ -140,6 +139,8 @@ DO ts = 1,50
                 ENDIF
             ENDDO
         ENDDO
+
+        tol = maxval(abs(Gg))
         
         DO i = 1,msh%np
             !print *, i, GG(i*dof-1),GG(i*dof)
@@ -158,7 +159,7 @@ DO ts = 1,50
         dY = matmul(Ggti,-Gg)
 
         DO i=1,msh%np
-            !print *, dY(i*dof-1), dY(i*dof), i
+            !print *, dY(i*dof-1), dY(i*dof), i,(i-1)*dof + j
             DO j=1,dof
                 y%ddd(j,i) = y%ddd(j,i) +           dY((i-1)*dof + j)
                 y%ddot(j,i)= y%ddot(j,i)+ gam*dt*   dY((i-1)*dof + j)
@@ -167,17 +168,19 @@ DO ts = 1,50
             ENDDO
         ENDDO
 
-!       Get updated element geometric properties
-        DO i =1,msh%nEl
-            CALL msh%el(i)%upgeom(msh%x(msh%IEN(i,:),:))
-        ENDDO
+        print *, ti, ts, maxval(abs(Gg)), minval((dy)), maxval(abs(y%d(2,:))), maxval(msh%x(:,2))
+        !!!!!!!!!!!!!!!!!! seems to be working, figure out mesh movement
+        !if(ti.eq.10) stop
+    ENDDO
 
 
-        print *, ti, ts, maxval(abs(Gg)), minval((dy))
-        !if(ti.eq.2) stop
+!   Get updated element geometric properties
+    DO i =1,msh%nEl
+        CALL msh%el(i)%upgeom(msh%x(msh%IEN(i,:),:))
     ENDDO
 
 !   Update Loops
+    open(88,file = 'y.txt',position = 'append')
     DO i=1,msh%np
         DO j = 1,y%dof
             y%dddo(j,i) = y%ddd(j,i)
@@ -187,7 +190,7 @@ DO ts = 1,50
         write(88,*) msh%x(i,1)
         write(88,*) msh%x(i,2)
     ENDDO
+    close(88)
 ENDDO
-close(88)
 
 END PROGRAM MAIN

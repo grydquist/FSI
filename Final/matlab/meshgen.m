@@ -1,11 +1,11 @@
 %clear all
 % Number of grid points in x and y direction
-nx=21;
-ny=21;
+nx=13; %21
+ny=19; %21
 
 % Number of grid points for the flexible beam (solid)
-bnx=6; % This includes the square block
-bny=3;
+bnx=6; % This includes the square block 6
+bny=3; % 3
 
 % The overall size of the domain
 l=19.5;

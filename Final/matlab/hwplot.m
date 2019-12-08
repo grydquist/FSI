@@ -67,7 +67,7 @@ dNM_dUdot_11= zeros(9,9)+ ...
   d2 = d(5,:);
 
 dNM_dUdot_11(5,:);
-%%
+%% NS
 %d1 = d(1:2:end);
 %d2 = d(2:2:end);
 %d1 = reshape(d1,nx,ny);
@@ -75,6 +75,10 @@ dNM_dUdot_11(5,:);
 %d = reshape(d,nx,ny,200);
 X = reshape(x(1,:),nx,ny);
 Y = reshape(x(2,:),nx,ny);
+xx = X(1:end,1);
+yy = Y(1,1:end)';
+
+%[xx,yy] = meshgrid(X,Y);
 
 % for i = 1:200
 %     clf
@@ -97,14 +101,18 @@ fclose(fileid);
 u = ut(1:2:end);
 v = ut(2:2:end);
 
-pts = 100;
+pts = length(u)/nx/ny;
 u = reshape(u,nx,ny,pts);
 v = reshape(v,nx,ny,pts);
+startx = linspace(X(1),X(end),10);
+starty = linspace(Y(1),Y(end),10);
+
 for i=1:pts
     u(:,:,i) = u(:,:,i)';
     v(:,:,i) = v(:,:,i)';
     clf;
-    quiver(u(1:end-1,:,i),v(1:end-1,:,i))
+    quiver(xx,yy(1:end-1),u(1:end-1,:,i),v(1:end-1,:,i))
+    streamline(xx,yy,u(:,:,i),v(:,:,i),startx,starty)
     hold on
     pause(0.1)
 end
@@ -117,7 +125,9 @@ fclose(fileid);
 u = yt(1:2:end);
 v = yt(2:2:end);
 
-pts = 50;
+%nx = 9;
+%ny = 9;
+pts = length(u)/nx/ny;
 u = reshape(u,nx,ny,pts);
 v = reshape(v,nx,ny,pts);
 for i=1:pts
@@ -134,7 +144,7 @@ for i=1:pts
     set(gcf, 'Position',  [300, 300, 1200, 400])
     axis([0,10.1,-1,2])
     hold on
-    pause(0.1)
+    pause(1)
 end
 
 %% Plot v field
@@ -152,7 +162,6 @@ eNo = 3;
 pts = length(u)/nNo;
 u = reshape(u,nNo,pts);
 v = reshape(v,nNo,pts);
-disp('ran')
 for ii = 1:pts
     name = horzcat('vtks/result_',num2str(ii),'.vtk');
     fileID = fopen(name,'w');
@@ -188,3 +197,4 @@ for ii = 1:pts
 end
 
 
+disp('ran')

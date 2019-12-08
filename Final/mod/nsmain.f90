@@ -18,7 +18,7 @@ cnt = 0
 dofu = 2
 dofp = 1
 dof  = dofp + dofu
-dt = 1D-4
+dt = 1D-3
 ! makes the msh
 msh = mshtype(dof,dt)
 
@@ -65,7 +65,7 @@ DO i = 1,msh%np
         ENDIF
             
 !       Top Walls
-        IF((msh%x(i,2) .gt. maxval(msh%x(:,1))-1d-8).or.(msh%x(i,2) .lt. 1d-8)) THEN
+        IF((msh%x(i,2) .gt. maxval(msh%x(:,2))-1d-8).or.(msh%x(i,2) .lt. 1d-8)) THEN
             bnd(i,1,2) = 1
             bnd(i,2,2) = 0
         ENDIF
@@ -105,19 +105,19 @@ ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
 & Ggti(msh%np*dof,msh%np*dof), dY(msh%np*dof), Gti(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof))
 
 fun(1,:) = 0
-tol = 0
 u%d    = u%do
 p%d    = p%do
 
 DO ts = 1,1000
 !   Reset iteration counter
     ti = 0
-
+    tol =100
 !   Make first interation guess
     u%ddot = u%ddoto*(gam - 1D0)/gam
 
 !   Iteration loop
-    DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))
+    DO WHILE ((ti .lt. 16).and.(tol .gt. 1e-6))
+        ti = ti+1
         Gg = 0
         Ggt= 0
         dY = 0
