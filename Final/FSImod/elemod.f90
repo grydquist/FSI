@@ -7,6 +7,8 @@ TYPE :: eltype
     REAL(KIND = 8) :: J, dt
     INTEGER:: gp,shp,eNoN,dof,id
     INTEGER, ALLOCATABLE :: bnd(:,:,:), nds(:)
+!   Is this element in the fluid or solid domain? 1 == solid, 0 == fluid
+    INTEGER :: dom
     CONTAINS
     PROCEDURE :: upgeom => elupgeom
 END TYPE

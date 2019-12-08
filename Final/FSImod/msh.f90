@@ -12,7 +12,7 @@ TYPE :: mshtype
 !   Element type with info in it
     TYPE(eltype), ALLOCATABLE :: el(:)
 !   List of if the node is a boundary node, and if so what type and value
-!   (np,2), 1 == Dirichlet, 2 == Neumann, 0 == no boundary
+!   (np,2), 1 == Dirichlet, 2 == Neumann, 0 == no boundary, 4 == fluid/sol bound
 !   the last index is the dof
     INTEGER, ALLOCATABLE :: bnd(:,:,:)
 

@@ -10,19 +10,13 @@ SUBROUTINE lresidelast(G,Gt,fun,el,y)
 TYPE(eltype), INTENT(IN) :: el
 REAL(KIND=8), ALLOCATABLE, INTENT(IN) :: fun(:,:)
 TYPE(soltype), INTENT(IN) :: y
-REAL(KIND=8), INTENT(OUT) :: G(el%eNoN*y%dof),Gt(el%eNoN*y%dof,el%eNoN*y%dof)
+REAL(KIND=8), INTENT(OUT) :: G(el%eNoN*el%dof),Gt(el%eNoN*el%dof,el%eNoN*el%dof)
 INTEGER :: a,b,gp,i,j,ai,bi, ag
-! Subgrid variables
 REAL(KIND=8) ygp(y%dof,el%gp), dyxgp(y%dof,y%dof,el%gp), ddytgp(y%dof,el%gp), &
 &            Nxg(el%eNoN,y%dof,el%gp), Ng(el%eNoN,el%gp)
 ! Temporary material properties !!!
 REAL(KIND=8) :: rho,mu, lam, mu2
 
-
-!REAL(KIND=8) :: gtemp1,gtemp3,gtemp2
-!gtemp1 = 0
-!gtemp2 = 0
-!gtemp3 = 0
 
 ! Put shape functions and their derivs into their own variable
 Nxg = el%Nxg
@@ -35,7 +29,6 @@ mu2 = 1D0
 
 Gt = 0
 G = 0
-ai = 0
 ygp = 0
 dyxgp = 0
 ddytgp = 0
@@ -55,10 +48,12 @@ DO i = 1,y%dof
     ENDDO
 ENDDO
 
+ai = 3
 ! Loop through element nodes to calc resid
 DO a = 1,el%eNoN
 ! Loop through dof (for index a)
 DO i = 1,y%dof
+!   Get index to add this to strain resid
     ai = ai+1
 !   If this isn't a boundary node, go ahead and calculate the resid at a
     IF (el%bnd(a,1,i).eq.0) THEN
@@ -81,13 +76,12 @@ DO i = 1,y%dof
 ENDDO
 ENDDO
 
-ai = 0
-
+ai = 3
 ! Now for the tangent matrix
 DO a = 1,el%eNoN
 ! Loop through dof of residual
 DO i = 1,y%dof
-    bi = 0
+    bi = 2
     ai = ai+1
 !   Check derivatives with same or surrounding nodes (b)
     DO b = 1,el%eNoN

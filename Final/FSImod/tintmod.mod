@@ -1,5 +1,5 @@
 GFORTRAN module version '10' created from tint.f90
-MD5:0ff0fe05e614f75aa1c1903829cfa02e -- If you edit this, you'll get what you deserve.
+MD5:c9b3fe13a92c5511bd10412d140b276f -- If you edit this, you'll get what you deserve.
 
 (() () () () () () () () () () () () () () () () () () () () () () ()
 () () () ())
@@ -62,24 +62,21 @@ IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
 2 'newsol' 'solmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
 UNKNOWN 0 0 FUNCTION IMPLICIT_PURE ALWAYS_EXPLICIT) (DERIVED 3 0 0 0
 DERIVED ()) 23 0 (24 25 26 27) () 28 () () () 0 0)
-29 'resid' 'tintmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
-UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE) (UNKNOWN 0 0 0 0 UNKNOWN ()) 30 0
-(31 32) () 0 () () () 0 0)
-33 'rhoin' 'tintmod' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+29 'rhoin' 'tintmod' '' 1 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 IMPLICIT-SAVE 0 0) (REAL 8 0 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-34 'solmod' 'solmod' '' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+30 'solmod' 'solmod' '' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN 0 0) (UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
-35 'soltype' 'solmod' '' 1 ((PROCEDURE UNKNOWN-INTENT UNKNOWN-PROC DECL
+31 'soltype' 'solmod' '' 1 ((PROCEDURE UNKNOWN-INTENT UNKNOWN-PROC DECL
 UNKNOWN 0 0 FUNCTION GENERIC) (UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 ()
 () () 0 0)
-36 'tintinit' 'tintmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
-UNKNOWN 0 0 SUBROUTINE) (UNKNOWN 0 0 0 0 UNKNOWN ()) 37 0 (38) () 0 () ()
+32 'tintinit' 'tintmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
+UNKNOWN 0 0 SUBROUTINE) (UNKNOWN 0 0 0 0 UNKNOWN ()) 33 0 (34) () 0 () ()
 () 0 0)
-39 'tintmod' 'tintmod' '' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
+35 'tintmod' 'tintmod' '' 1 ((MODULE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN
 UNKNOWN 0 0) (UNKNOWN 0 0 0 0 UNKNOWN ()) 0 0 () () 0 () () () 0 0)
-40 'toalph' 'tintmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
-UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE) (UNKNOWN 0 0 0 0 UNKNOWN ()) 41 0
-(42) () 0 () () () 0 0)
+36 'toalph' 'tintmod' '' 1 ((PROCEDURE UNKNOWN-INTENT MODULE-PROC DECL
+UNKNOWN 0 0 SUBROUTINE IMPLICIT_PURE) (UNKNOWN 0 0 0 0 UNKNOWN ()) 37 0
+(38) () 0 () () () 0 0)
 24 'dof' '' '' 23 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (INTEGER 4 0 0 0 INTEGER ()) 0 0 () () 0 () () () 0 0)
 25 'np' '' '' 23 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY) (
@@ -93,16 +90,12 @@ DEFERRED () () () () () ()) 0 () () () 0 0)
 28 'sol' '' '' 23 ((VARIABLE UNKNOWN-INTENT UNKNOWN-PROC UNKNOWN UNKNOWN
 0 0 RESULT ALWAYS_EXPLICIT) (DERIVED 3 0 0 0 DERIVED ()) 0 0 () () 0 ()
 () () 0 0)
-31 'sol' '' '' 30 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
-(DERIVED 3 0 0 0 DERIVED ()) 0 0 () () 0 () () () 0 0)
-32 'g' '' '' 30 ((VARIABLE OUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY) (
-REAL 8 0 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-38 'rhoi' '' '' 37 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
+34 'rhoi' '' '' 33 ((VARIABLE IN UNKNOWN-PROC UNKNOWN UNKNOWN 0 0 DUMMY)
 (REAL 8 0 0 0 REAL ()) 0 0 () () 0 () () () 0 0)
-42 'sol' '' '' 41 ((VARIABLE INOUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
+38 'sol' '' '' 37 ((VARIABLE INOUT UNKNOWN-PROC UNKNOWN UNKNOWN 0 0
 DUMMY) (DERIVED 3 0 0 0 DERIVED ()) 0 0 () () 0 () () () 0 0)
 )
 
 ('Soltype' 0 3 'alphf' 0 19 'alphm' 0 20 'bet' 0 21 'gam' 0 22 'newsol'
-0 2 'resid' 0 29 'rhoin' 0 33 'solmod' 0 34 'soltype' 0 35 'tintinit' 0
-36 'tintmod' 0 39 'toalph' 0 40)
+0 2 'rhoin' 0 29 'solmod' 0 30 'soltype' 0 31 'tintinit' 0 32 'tintmod'
+0 35 'toalph' 0 36)

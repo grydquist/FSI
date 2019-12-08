@@ -67,7 +67,7 @@ DO i = 1,msh%np
 !       Top Walls
         IF((msh%x(i,2) .gt. maxval(msh%x(:,1))-1d-8).or.(msh%x(i,2) .lt. 1d-8)) THEN
             bnd(i,1,2) = 1
-            bnd(i,2,2) = 1
+            bnd(i,2,2) = 0
         ENDIF
 !       Square
         IF((msh%x(i,1) .gt. 4.5 - 1d-8) .and. (msh%x(i,1) .lt. 5.5 + 1d-8) .and. &
@@ -182,7 +182,7 @@ DO ts = 1,1000
             DO j=1,dof
                 IF (j.lt.3) THEN
                     u%ddot(j,i)  = u%ddot(j,i) + dY((i-1)*dof + j)
-                    u%d(j,i)     = u%d(j,i) + gam*dt*dY((i-1)*dof + j)!u%do(j,i) + u%ddot(j,i)*gam*dt
+                    u%d(j,i)     = u%d(j,i) + gam*dt*dY((i-1)*dof + j)
                 ELSE
                     p%d(1,i)     = p%d(1,i) + dY((i-1)*dof + j)
                 ENDIF
@@ -190,7 +190,7 @@ DO ts = 1,1000
         ENDDO
         tol = dnrm22(msh%np*dof,GG,1)
         rtol = dnrm22(msh%np*dof,GG/maxG,1)
-        print *, ti, ts, minval((dy)), tol, rtol, maxval(u%d(1,:))
+        print *, ti, ts, minval((dy)), tol, rtol, maxval(u%d(1,:)), maxval(u%ddot(1,:))
         !if(ti.eq.10) stop
     ENDDO
 

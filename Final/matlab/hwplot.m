@@ -117,7 +117,7 @@ fclose(fileid);
 u = yt(1:2:end);
 v = yt(2:2:end);
 
-pts = 9;
+pts = 50;
 u = reshape(u,nx,ny,pts);
 v = reshape(v,nx,ny,pts);
 for i=1:pts
@@ -140,6 +140,7 @@ end
 %% Plot v field
 
 %% Export solution ----------------------need work
+% make sure you have right x and ien
 fileid = fopen('u.txt');
 ut = fscanf(fileid,'%f');
 fclose(fileid);
@@ -147,11 +148,11 @@ fclose(fileid);
 u = ut(1:2:end);
 v = ut(2:2:end);
 eNo = 3;
-
+%nNo = 1451;% 21,21,6,3
 pts = length(u)/nNo;
 u = reshape(u,nNo,pts);
 v = reshape(v,nNo,pts);
-
+disp('ran')
 for ii = 1:pts
     name = horzcat('vtks/result_',num2str(ii),'.vtk');
     fileID = fopen(name,'w');

@@ -30,8 +30,8 @@ REAL(KIND=8) :: rho,mu
 Nxg = el%Nxg
 Ng = el%Ng
 
-rho = 1.18D-3!1D0
-mu = 1.82D-4!1D0
+rho = 1D0!1.18D-3!1D0
+mu = 1D0!1.82D-4!1D0
 
 Gt = 0
 G = 0
@@ -109,8 +109,8 @@ ENDDO
 ! Loop through element nodes to calc resid with subgrid
 DO a = 1,el%eNoN
 ! Loop through dof (for index a)
-DO i = 1,el%dof
-    ai = ai+1
+DO i = 1,(u%dof + p%dof)
+    ai = (a-1)*el%dof + i
 !   If this isn't a boundary node, go ahead and calculate the resid at a
     IF (el%bnd(a,1,i).eq.0) THEN
 !           Loop through Gauss points to calc integral
@@ -147,19 +147,24 @@ ENDDO
 ENDDO
 
 
-ai = 0
+! Remove subgrid
+DO gp = 1,el%gp
+    DO i = 1,u%dof
+        ugp(i,gp) = ugp(i,gp) - upgp(i,gp)
+    ENDDO
+    pgp(gp) = pgp(gp) - ppgp(gp)
+ENDDO
 
 ! Now for the tangent matrix
 DO a = 1,el%eNoN
 ! Loop through dof of residual (i = 3) = continuity
-DO i = 1,el%dof
-    bi = 0
-    ai = ai+1
+DO i = 1,(u%dof + p%dof)
+    ai = (a-1)*el%dof + i
 !   Check derivatives with same or surrounding nodes (b)
     DO b = 1,el%eNoN
 !       Again through dof for parameters (j = 3) = pressure
-        DO j =1,el%dof
-            bi = bi+1
+        DO j =1,(u%dof + p%dof)
+            bi = (b-1)*el%dof + j
             DO gp = 1,el%gp
 !               4 derivative cases:
 !               Momentum residual with respect to velocity
@@ -208,6 +213,9 @@ DO i = 1,el%dof
     ENDDO
 ENDDO
 ENDDO
+
+! Now let's deal with the other terms.
+! If we have a boundary node, we want to say that the velocities match at boundaries
 
 
 END SUBROUTINE lresidns

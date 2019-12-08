@@ -6,13 +6,13 @@ USE LRESIDELASTMOD
 USE SOLVEMOD
 IMPLICIT NONE
 TYPE(mshtype) msh
-TYPE(soltype) yd, y
+TYPE(soltype) y
 INTEGER, ALLOCATABLE :: bnd(:,:,:), bnd2(:,:,:), bndt(:,:,:),bnd2t(:,:,:)
 INTEGER i,j,k,l,m, ti, dofy, ts, dof, gp,a, cnt
 REAL(KIND=8) lx,ly,tol, dt
 !REAL(KIND=8), PARAMETER :: k=1,cv=1,mu=1,e=1,nu=.3,pi = 3.14159265358979323846264337
 REAL(KIND=8), ALLOCATABLE :: fun(:,:),fung(:,:), G(:), Gt(:,:),Gg(:), Ggt(:,:), dY(:),Ggti(:,:) &
-& ,Gti(:,:), yorig(:,:), xog(:,:)
+& ,Gti(:,:), xog(:,:)
 
 cnt = 0
 dofy = 2
@@ -52,7 +52,6 @@ ALLOCATE(bndt(msh%np,2,dofy),bnd2t(msh%np,2,dofy))
 bndt = bnd(:,:,1:2)
 bnd2t= bnd2(:,:,1:2)
 y = soltype(dofy, msh%np, bndt, bnd2t)
-yd= soltype(dofy, msh%np, bndt, bnd2t)
 
 ! Add in the BC info
 CALL msh%bound(bnd)
@@ -61,7 +60,7 @@ ALLOCATE(fun(dof,msh%el(1)%gp))
 ALLOCATE(G(msh%el(1)%eNoN*dof), Gg(msh%np*dof), &
 & Gt(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof), Ggt(msh%np*dof,msh%np*dof),&
 & Ggti(msh%np*dof,msh%np*dof), dY(msh%np*dof), Gti(msh%el(1)%eNoN*dof,msh%el(1)%eNoN*dof), &
-& yorig(msh%np,y%dof), fung(dof,msh%np), xog(msh%np,y%dof))
+& fung(dof,msh%np), xog(msh%np,y%dof))
 
 ! Original mesh coordinates
 xog = msh%x
@@ -77,9 +76,7 @@ DO i = 1, msh%np
 ENDDO
 
 tol = 0
-yd%d    = yd%do
 y%d     = y%do
-yorig  = y%d
 
 open(88,file = 'y.txt',position = 'append')
 
@@ -91,7 +88,7 @@ DO ts = 1,50
     IF(ts.eq.25) fung = 0
 
 !   Make first interation guess
-    yd%ddot = yd%ddoto*(gam - 1D0)/gam
+    y%ddd = y%ddd*(gam - 1D0)/gam
 
 !   Iteration loop
     DO ti = 1,15!WHILE ((ti .lt. 16).and.(tol .lt. 1e-3))

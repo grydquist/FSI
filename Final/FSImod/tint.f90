@@ -11,9 +11,9 @@ CONTAINS
 SUBROUTINE tintinit(rhoi)
     REAL(KIND=8), INTENT(IN) :: rhoi
     rhoin = rhoi
-    alphm = (3D0-rhoin)/2D0/(1D0+rhoin)
+    alphm = (2D0-rhoin)/(1D0+rhoin)
     alphf = 1D0/(1D0+rhoin)
-    gam   = alphf
+    gam   = 1D0/2D0 + alphm - alphf
     bet = 1D0/4D0*(1+alphm-alphf)**2D0
 
 END SUBROUTINE tintinit
@@ -45,18 +45,6 @@ SUBROUTINE toalph(sol)
 
 
 END SUBROUTINE toalph
-
-!=======================================================================
-SUBROUTINE resid(sol,G)
-    TYPE(solType), INTENT(IN) :: sol
-    REAL(KIND=8), INTENT(OUT) :: G
-    G=sol%d(1,1)
-    
-
-END SUBROUTINE resid
-
-
-
 
 
 END MODULE TINTMOD

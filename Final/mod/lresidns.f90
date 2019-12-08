@@ -146,7 +146,14 @@ DO i = 1,el%dof
 ENDDO
 ENDDO
 
-
+! Remove subgrid
+DO gp = 1,el%gp
+    DO i = 1,u%dof
+        ugp(i,gp) = ugp(i,gp) - upgp(i,gp)
+    ENDDO
+    pgp(gp) = pgp(gp) - ppgp(gp)
+ENDDO
+ 
 ai = 0
 
 ! Now for the tangent matrix

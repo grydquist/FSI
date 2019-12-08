@@ -24,10 +24,6 @@ msh = mshtype(dof,dt)
 ! Initialize time integrator with damping
 CALL tintinit(0.2D0)
 
-! get some geometry and whatnot
-lx = maxval(msh%x(:,1))
-ly = maxval(msh%x(:,2))
-
 ! Allocate variables and initializa big stiffness/forcing matrices
 ALLOCATE(bnd(msh%np,2,dof),bnd2(msh%np,2,dof))
 bnd  = 0
